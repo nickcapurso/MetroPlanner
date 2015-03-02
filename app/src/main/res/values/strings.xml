@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">MapsApplication</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="quick_plan">Quick Plan</string>
+    <string name="search">Search</string>
+    <string name="plan_trip">Plan Trip</string>
+    <string name="trip_history">Trip History</string>
+    <string name="delays_warnings">Delays &amp; Warnings</string>
+    <string name="google_maps">Google Maps</string>
+    <string name="metro_map">View Metro Map</string>
+
+</resources>
