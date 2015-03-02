@@ -33,6 +33,7 @@ public class MainActivity extends Activity {
                 break;
             case R.id.btnDelays:
                 Log.d(TAG, "btnDelays");
+                startActivity(new Intent(this, IncidentsActivity.class));
                 break;
             case R.id.btnMetroMap:
                 Log.d(TAG, "btnMetroMap");
