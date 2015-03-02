@@ -17,10 +17,11 @@
             android:layout_weight="1"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-
+            android:inputType="textPostalAddress"
             android:hint="@string/quick_plan"/>
 
         <ImageButton
+            android:id="@+id/btnSearch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_menu_search"
@@ -41,40 +42,58 @@
                 android:orientation="vertical" >
 
                 <Button
+                    android:id="@+id/btnPlanTrip"
+                    android:onClick="onClick"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
                     android:paddingBottom="@dimen/padding_small"
                     android:paddingTop="@dimen/padding_small"
-                    android:background="@color/white"
+                    android:background="@drawable/white_button"
                     android:gravity="center"
                     android:text="@string/plan_trip">
                 </Button>
 
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="2dp"
+                    android:background="@color/shadow" />
+
                 <Button
+                    android:id="@+id/btnTripHistory"
+                    android:onClick="onClick"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
                     android:paddingBottom="@dimen/padding_small"
                     android:paddingTop="@dimen/padding_small"
-                    android:background="@color/white"
+                    android:background="@drawable/white_button"
                     android:gravity="center"
                     android:text="@string/trip_history">
                 </Button>
 
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="2dp"
+                    android:background="@color/shadow" />
+
                 <Button
+                    android:id="@+id/btnDelays"
+                    android:onClick="onClick"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
                     android:paddingBottom="@dimen/padding_small"
                     android:paddingTop="@dimen/padding_small"
-                    android:background="@color/white"
+                    android:background="@drawable/white_button"
                     android:gravity="center"
                     android:text="@string/delays_warnings">
                 </Button>
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="2dp"
+                    android:background="@color/shadow" />
 <!--
                 <Button
                     android:layout_width="fill_parent"
@@ -95,8 +114,11 @@
                     android:src="@drawable/metro_map_cropped"/>
 -->
                 <FrameLayout
+                    android:id="@+id/btnMetroMap"
+                    android:onClick="onClick"
                     android:layout_height="wrap_content"
                     android:layout_width="match_parent"
+                    android:layout_marginTop="5dp"
                     >
 
 
@@ -105,7 +127,7 @@
                         android:layout_height="wrap_content"
                         android:adjustViewBounds="true"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/metro_map_cropped"/>
+                        android:src="@drawable/metro_map_croppedsmaller"/>
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -133,6 +155,11 @@
                             android:text="@string/metro_map"/>
                         </LinearLayout>
                 </FrameLayout>
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="2dp"
+                    android:background="@color/shadow" />
             </LinearLayout>
 
         </ScrollView>

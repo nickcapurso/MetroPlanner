@@ -4,4 +4,6 @@
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="black_noalpha">#00000000</color>
+    <color name="shadow">#b4b4b4</color>
+    <color name="highlight">#d4d4d4</color>
 </resources>
