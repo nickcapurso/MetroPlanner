@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.LinearLayout;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -15,6 +16,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,15 +28,20 @@ import java.net.URISyntaxException;
  * Created by nickcapurso on 3/2/15.
  */
 public class IncidentsActivity extends Activity {
+    private LinearLayout mMainLayout;
+
    @Override
    protected void onCreate(Bundle savedInstanceState){
        super.onCreate(savedInstanceState);
        setContentView(R.layout.activity_incidents);
+
+       mMainLayout = (LinearLayout)findViewById(R.id.incidentLayout);
    }
 
     @Override
     public void onResume(){
         super.onResume();
+        mMainLayout.removeAllViews();
         new FetchIncidents(this).execute("https://api.wmata.com/Incidents.svc/json/Incidents", "kfgpmgvfgacx98de9q3xazww");
     }
 
@@ -42,6 +51,11 @@ public class IncidentsActivity extends Activity {
 
         public FetchIncidents(Context context){
             this.context = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            dialog = ProgressDialog.show(context, "Please Wait...", "Loading Incidents...", true);
         }
 
         @Override
@@ -73,15 +87,39 @@ public class IncidentsActivity extends Activity {
         }
 
         @Override
-        protected void onPostExecute(String incidents) {
-            Log.d(MainActivity.TAG, "Fetch complete: " + incidents);
+        protected void onPostExecute(String incidentsJSON) {
+            Log.d(MainActivity.TAG, "Fetch complete: " + incidentsJSON);
+            JSONObject jsonParser;
+            JSONArray incidentsList;
+            String linesAffected = "", description = "";
+
+            try {
+                jsonParser = new JSONObject(incidentsJSON);
+                incidentsList = jsonParser.getJSONArray("Incidents");
+            } catch (JSONException e) {
+                Log.d(MainActivity.TAG, "Error parsing JSON");e.printStackTrace();
+                return;
+            }
+
+            if(incidentsList.length() == 0){
+                mMainLayout.addView(new IncidentView(context, "No incident to report",""));
+                mMainLayout.addView(new ShadowView(context));
+            }else{
+                for(int i = 0; i < incidentsList.length(); i++){
+                    try {
+                        linesAffected = incidentsList.getJSONObject(i).getString("LinesAffected");
+                        description = incidentsList.getJSONObject(i).getString("Description");
+                    } catch (JSONException e) {
+                        Log.d(MainActivity.TAG, "Error parsing JSON");e.printStackTrace();
+                        return;
+                    }
+                    mMainLayout.addView(new IncidentView(context, "linesAffected", "description"));
+                    mMainLayout.addView(new ShadowView(context));
+                }
+            }
+
+            mMainLayout.invalidate();
             dialog.cancel();
-
-        }
-
-        @Override
-        protected void onPreExecute() {
-            dialog = ProgressDialog.show(context, "Please Wait...", "Loading Incidents...", true);
         }
     }
 }
