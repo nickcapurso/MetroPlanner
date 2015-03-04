@@ -3,9 +3,4 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="fill_parent">
 
-    <ProgressBar
-        android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_gravity="center"/>
 </LinearLayout>
