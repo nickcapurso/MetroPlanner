@@ -1,0 +1,84 @@
+"results" : 
+[
+    {
+	    "address_components" : 
+	    [
+		    {
+			    "long_name" : "GWU",
+			    "short_name" : "GWU",
+			    "types" : [ "point_of_interest", "establishment" ]
+		    },
+		    {
+			    "long_name" : "The George Washington University",
+			    "short_name" : "The George Washington University",
+			    "types" : [ "establishment" ]
+		    },
+		    {
+			    "long_name" : "1129",
+			    "short_name" : "1129",
+			    "types" : [ "street_number" ]
+		    },
+		    {
+			    "long_name" : "New Hampshire Avenue Northwest",
+			    "short_name" : "New Hampshire Ave NW",
+			    "types" : [ "route" ]
+		    },
+		    {
+			    "long_name" : "Downtown",
+			    "short_name" : "Downtown",
+			    "types" : [ "neighborhood", "political" ]
+		    },
+		    {
+			    "long_name" : "Washington",
+			    "short_name" : "D.C.",
+			    "types" : [ "locality", "political" ]
+		    },
+		    {
+			    "long_name" : "District of Columbia",
+			    "short_name" : "DC",
+			    "types" : [ "administrative_area_level_1", "political" ]
+		    },
+		    {
+			    "long_name" : "United States",
+			    "short_name" : "US",
+			    "types" : [ "country", "political" ]
+		    },
+		    {
+			    "long_name" : "20037",
+			    "short_name" : "20037",
+			    "types" : [ "postal_code" ]
+		    },
+		    {
+			    "long_name" : "1533",
+			    "short_name" : "1533",
+			    "types" : [ "postal_code_suffix" ]
+		    }
+	    ],
+	    "formatted_address" : "GWU, The George Washington University, 1129 New Hampshire Avenue Northwest, Washington, DC 20037, USA",
+	    "geometry" : 
+	    {
+		    "location" : 
+		    {
+			    "lat" : 38.9043599,
+			    "lng" : -77.047719
+	    	},
+		    "location_type" : "APPROXIMATE",
+		    "viewport" : 
+		    {
+			    "northeast" : 
+			    {
+				    "lat" : 38.90570888029149,
+				    "lng" : -77.0463700197085
+			    },
+			    "southwest" : 
+			    {
+			    "lat" : 38.90301091970849,
+			    "lng" : -77.04906798029151
+			    }
+		    }
+	    },
+	    "place_id" : "ChIJ-xo2Hbe3t4kREnnqcMKCwv0",
+	    "types" : [ "university", "point_of_interest", "establishment" ]
+	}
+],
+"status" : "OK"

@@ -2,7 +2,9 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
 
     <LinearLayout
         android:id="@+id/layout_search_bar"
@@ -14,6 +16,7 @@
         android:orientation="horizontal">
 
         <EditText
+            android:id="@+id/etDestination"
             android:layout_weight="1"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -22,11 +25,12 @@
 
         <ImageButton
             android:id="@+id/btnSearch"
+            android:onClick="onClick"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_menu_search"
             android:layout_gravity="center"
-            android:background="@color/white_noalpha"/>
+            android:background="@drawable/white_button"/>
         </LinearLayout>
 
         <ScrollView
@@ -94,25 +98,7 @@
                     android:layout_width="fill_parent"
                     android:layout_height="2dp"
                     android:background="@color/shadow" />
-<!--
-                <Button
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:paddingBottom="@dimen/padding_small"
-                    android:paddingTop="@dimen/padding_small"
-                    android:background="@color/white"
-                    android:gravity="center"
-                    android:text="@string/metro_map">
-                </Button>
 
-                <ImageView
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:adjustViewBounds="true"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/metro_map_cropped"/>
--->
                 <FrameLayout
                     android:id="@+id/btnMetroMap"
                     android:onClick="onClick"
