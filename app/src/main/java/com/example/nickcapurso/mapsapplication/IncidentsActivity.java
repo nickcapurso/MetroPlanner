@@ -74,7 +74,7 @@ public class IncidentsActivity extends Activity {
         @Override
         public void handleMessage(Message message){
             switch(message.what){
-                case JSONFetcher.FETCH_COMPLETE:
+                case HandlerCodes.JSON_FETCH_DONE:
                     incidentsFetched((String)message.obj);
                     break;
             }

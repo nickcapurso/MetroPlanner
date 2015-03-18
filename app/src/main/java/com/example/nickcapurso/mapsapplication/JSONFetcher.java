@@ -24,8 +24,6 @@ import java.net.URISyntaxException;
  * Created by nickcapurso on 3/4/15.
  */
 public class JSONFetcher extends AsyncTask<String, Void, String>{
-    public static final byte FETCH_COMPLETE = 10;
-
     private Context context;
     private Handler client;
     private String loadingMessage;
@@ -75,7 +73,7 @@ public class JSONFetcher extends AsyncTask<String, Void, String>{
     @Override
     protected void onPostExecute(String result) {
         Log.d(MainActivity.TAG, "Result: " + result);
-        Message message = client.obtainMessage(FETCH_COMPLETE);
+        Message message = client.obtainMessage(HandlerCodes.JSON_FETCH_DONE);
         message.obj = result;
         client.sendMessage(message);
         dialog.cancel();
