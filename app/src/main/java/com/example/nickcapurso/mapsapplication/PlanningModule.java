@@ -1,9 +1,14 @@
 package com.example.nickcapurso.mapsapplication;
 
-import android.app.ProgressDialog;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 /**
  * Created by nickcapurso on 3/18/15.
@@ -11,16 +16,187 @@ import android.util.Log;
 public class PlanningModule{
     public static final byte PLANNING_COMPLETE = 10;
 
-    private byte state;
-    private final String mStartingAddr, mEndingAddr;
-    private final Handler mClientHandler;
-    private ProgressDialog mDialog;
+    private static final byte STATE_GET_ENTRANCES = 0;
+    private static final byte STATE_GET_LINES = 1;
+    private static final byte STATE_GET_STATION_LIST = 2;
+    private static final byte STATE_FINISHED = 3;
+    private static final int HALF_MILE_IN_METERS = 805;
+    private static final int ONE_SECOND = 1000;
 
-    public PlanningModule(String startingAddr, String endingAddr, Handler client, ProgressDialog loadingDialog){
+    private byte mState, mCurrQueryNum;
+    private boolean mSameLine;
+    private final AddressInfo mStartingAddr, mEndingAddr;
+    private StationInfo mStartingStation, mEndingStation, mMiddleStation;
+    private ArrayList<StationInfo> mFirstLeg, mSecondLeg;
+    private final Handler mClientHandler;
+
+    public PlanningModule(AddressInfo startingAddr, AddressInfo endingAddr, Handler client){
         mStartingAddr = startingAddr;
         mEndingAddr = endingAddr;
         mClientHandler = client;
-        mDialog = loadingDialog;
+        mFirstLeg = new ArrayList<StationInfo>();
+        mSecondLeg = new ArrayList<StationInfo>();
+    }
+
+    public void start(){
+        mState = STATE_GET_ENTRANCES;
+        mCurrQueryNum = 0;
+        Log.d(MainActivity.TAG, "Fetching first station entrance");
+        new JSONFetcher(mHandler).execute(API_URLS.STATION_ENTRANCES, "api_key", API_URLS.WMATA_API_KEY,
+                "Lat", ""+mStartingAddr.latitude, "Lon", ""+mStartingAddr.longitude, "Radius", ""+HALF_MILE_IN_METERS);
+    }
+
+    private void parseFetchResults(String jsonResult){
+        Message msg = mHandler.obtainMessage(HandlerCodes.FETCH_DELAY_DONE);
+        switch(mState){
+            case STATE_GET_ENTRANCES:
+                if(mCurrQueryNum == 0) {
+                    mStartingStation = parseStation(jsonResult);
+                }else {
+                    mEndingStation = parseStation(jsonResult);
+                }
+                break;
+            case STATE_GET_LINES:
+                if(mCurrQueryNum == 0){
+                    mStartingStation.lines = parseStationLines(jsonResult);
+                }else{
+                    //Get second station's lines
+                    mEndingStation.lines = parseStationLines(jsonResult);
+                }
+                break;
+            case STATE_GET_STATION_LIST:
+                if(mCurrQueryNum == 0){
+                    ArrayList<String> commonLines = new ArrayList<String>();
+                    //Parse out station list
+                    mFirstLeg = parseStationList(jsonResult);
+
+                    for(String line : mStartingStation.lines)
+                        if(mEndingStation.lines.contains(line))
+                            commonLines.add(line);
+
+                    if(commonLines.size() == 0){
+
+                    }else{
+                        for(String line : commonLines)
+                            Log.d(MainActivity.TAG, "Common line: " + line);
+                        mState = STATE_FINISHED;
+                    }
+                }else{
+                    mSecondLeg = parseStationList(jsonResult);
+                }
+
+                //If not same lines for both stations, run JSON fetcher again
+                break;
+        }
+        mHandler.sendMessageDelayed(msg, ONE_SECOND);
+    }
+
+    private void continueFetches(){
+        switch(mState){
+            case STATE_GET_ENTRANCES:
+                if(mCurrQueryNum == 0) {
+                    mCurrQueryNum++;
+                    Log.d(MainActivity.TAG, "Fetching second station entrance");
+                    new JSONFetcher(mHandler).execute(API_URLS.STATION_ENTRANCES, "api_key", API_URLS.WMATA_API_KEY,
+                            "Lat", ""+mEndingAddr.latitude, "Lon", ""+mEndingAddr.longitude, "Radius", ""+HALF_MILE_IN_METERS);
+                }else {
+                    mCurrQueryNum = 0;
+                    mState = STATE_GET_LINES;
+                    //Run JSONfetcher (get lines)
+                    Log.d(MainActivity.TAG, "Fetching first station lines");
+                    new JSONFetcher(mHandler).execute(API_URLS.STATION_INFO, "api_key", API_URLS.WMATA_API_KEY,
+                            "StationCode", mStartingStation.code);
+                }
+                break;
+            case STATE_GET_LINES:
+                if(mCurrQueryNum == 0){
+                    mCurrQueryNum ++;
+                    //Run JSONfetcher (second get line)
+                    Log.d(MainActivity.TAG, "Fetching second station lines");
+                    new JSONFetcher(mHandler).execute(API_URLS.STATION_INFO, "api_key", API_URLS.WMATA_API_KEY,
+                            "StationCode", mEndingStation.code);
+                }else{
+                    mCurrQueryNum = 0;
+                    mState = STATE_GET_STATION_LIST;
+                    //Run JSONfetcher (get station list)
+                    Log.d(MainActivity.TAG, "Fetching first station list");
+                    new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY,
+                            "LineCode", mStartingStation.lines.get(0));
+                }
+                break;
+            case STATE_GET_STATION_LIST:
+                if(mCurrQueryNum == 0){
+                    mCurrQueryNum ++;
+                    mState = STATE_FINISHED;
+                    //Run JSONfetcher for the second line (get station list)
+                    Log.d(MainActivity.TAG, "Fetching second station lines");
+                    new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY,
+                            "LineCode", mEndingStation.lines.get(0));
+                }
+                break;
+        }
+    }
+
+    private StationInfo parseStation(String jsonResult){
+        StationInfo temp = new StationInfo();
+        try {
+            JSONObject topObject = new JSONObject(jsonResult);
+            JSONArray entrances = topObject.getJSONArray("Entrances");
+            JSONObject firstEntrance = entrances.getJSONObject(0);
+
+            temp.name = firstEntrance.getString("Name");
+            temp.latitude = firstEntrance.getDouble("Lat");
+            temp.longitude = firstEntrance.getDouble("Lon");
+            temp.code = firstEntrance.getString("StationCode1");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Log.d(MainActivity.TAG, "Found station: " + temp.name + ", lat: " + temp.latitude + ", lng: " + temp.longitude + ", code: " + temp.code);
+        return temp;
+    }
+
+    private ArrayList<String> parseStationLines(String jsonResult){
+        ArrayList<String> temp = new ArrayList<String>();
+        try {
+            JSONObject topObject = new JSONObject(jsonResult);
+            String line = "";
+
+            if(!topObject.isNull("LineCode1"))
+                temp.add(topObject.getString("LineCode1"));
+
+            if(!topObject.isNull("LineCode2"))
+                temp.add(topObject.getString("LineCode2"));
+
+            if(!topObject.isNull("LineCode3"))
+                temp.add(topObject.getString("LineCode3"));
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        for(String s : temp)
+            Log.d(MainActivity.TAG, "Added line: " + s);
+        return temp;
+    }
+
+    private ArrayList<StationInfo> parseStationList(String jsonResult){
+        ArrayList<StationInfo> temp = new ArrayList<StationInfo>();
+
+        try {
+            JSONObject topObject = new JSONObject(jsonResult);
+            JSONArray stationsList = topObject.getJSONArray("Stations");
+
+            for(int i = 0; i < stationsList.length(); i++){
+                JSONObject station = stationsList.getJSONObject(i);
+                temp.add(new StationInfo(station.getString("Name"), station.getDouble("Lat"), station.getDouble("Lon"), station.getString("Code")));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        for(StationInfo info : temp)
+            Log.d(MainActivity.TAG, "Added, name: " + info.name + ", lat: " + info.latitude + ", lon: " + info.longitude + ", code: " + info.code);
+        return temp;
     }
 
     private Handler mHandler = new Handler(){
@@ -29,6 +205,10 @@ public class PlanningModule{
             Log.d(MainActivity.TAG, "PlanningModule, message received ("+message.what+")");
             switch(message.what){
                 case HandlerCodes.JSON_FETCH_DONE:
+                    parseFetchResults((String) message.obj);
+                    break;
+                case HandlerCodes.FETCH_DELAY_DONE:
+                    continueFetches();
                     break;
             }
         }

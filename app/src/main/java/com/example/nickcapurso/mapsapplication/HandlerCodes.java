@@ -6,5 +6,6 @@ package com.example.nickcapurso.mapsapplication;
 public class HandlerCodes {
     public static final byte JSON_FETCH_DONE = 0x10;
     public static final byte ADDRESS_CHOSEN = 0x11;
-    public static final byte UPDATE_PROGRESS = 0x12;
+    public static final byte FETCH_DELAY_DONE = 0x12;
+    public static final byte UPDATE_PROGRESS = 0x13;
 }

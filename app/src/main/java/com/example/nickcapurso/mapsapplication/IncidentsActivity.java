@@ -16,10 +16,6 @@ import org.json.JSONObject;
  * Created by nickcapurso on 3/2/15.
  */
 public class IncidentsActivity extends Activity {
-    private static final String WMATA_API_KEY = "kfgpmgvfgacx98de9q3xazww";
-    private static final String RAIL_INCIDENTS_URL = "https://api.wmata.com/Incidents.svc/json/Incidents";
-    private static final String BUS_INCIDENTS_URL = "https://api.wmata.com/Incidents.svc/json/BusIncidents";
-
     private LinearLayout mMainLayout;
     private ProgressDialog mDialog;
 
@@ -36,7 +32,7 @@ public class IncidentsActivity extends Activity {
         super.onResume();
         mMainLayout.removeAllViews();
         mDialog = ProgressDialog.show(this, "Please Wait...", "Finding address...", true);
-        new JSONFetcher(mHandler).execute(RAIL_INCIDENTS_URL, "api_key", WMATA_API_KEY);
+        new JSONFetcher(mHandler).execute(API_URLS.RAIL_INCIDENTS, "api_key", API_URLS.WMATA_API_KEY);
     }
 
     private void incidentsFetched(String incidentsJSON){

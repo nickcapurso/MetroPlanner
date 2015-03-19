@@ -22,8 +22,6 @@ import android.widget.Toast;
  */
 public class MainActivity extends Activity implements LocationListener{
     public static final String TAG = "MetroPlanner";
-    private static final String GEOCODING_URL = "http://maps.google.com/maps/api/geocode/json";
-    private static final String GOOGLE_API_KEY = "AIzaSyCeeioXvbj7KXqeBGAtyFKiz_2Z9Y5txrQ";
     private LocationManager mLocationManager;
     private ProgressDialog mDialog;
     private AddressInfo mStartingAddr;
@@ -49,7 +47,7 @@ public class MainActivity extends Activity implements LocationListener{
                 }
 
                 mDialog = ProgressDialog.show(this, "Please Wait...", "Finding address...", true);
-                new JSONFetcher(mHandler).execute(GEOCODING_URL, "address", input);
+                new JSONFetcher(mHandler).execute(API_URLS.GEOCODING, "address", input);
                 break;
             case R.id.btnPlanTrip:
                 Log.d(TAG, "btnPlanTrip");
@@ -79,8 +77,12 @@ public class MainActivity extends Activity implements LocationListener{
                     break;
                 case HandlerCodes.ADDRESS_CHOSEN:
                     mStartingAddr = (AddressInfo)message.obj;
-                    mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Obtaining Location Fix",true);
-                    mLocationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, MainActivity.this, null);
+                    Intent startMaps = new Intent(MainActivity.this, MapsActivity.class);
+                    startMaps.putExtra("startingAddr", mStartingAddr);
+                    startMaps.putExtra("endingAddr", mStartingAddr);
+                    startActivity(startMaps);
+                    //mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Obtaining Location Fix",true);
+                    //mLocationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, MainActivity.this, null);
                     break;
             }
         }

@@ -21,6 +21,7 @@ public class MapsActivity extends FragmentActivity {
     private Intent mIntent;
     private AddressInfo mStartingAddr;
     private AddressInfo mEndingAddr;
+    private PlanningModule mPlanningModule;
     private ProgressDialog mDialog;
 
     @Override
@@ -38,7 +39,8 @@ public class MapsActivity extends FragmentActivity {
         super.onResume();
         setUpMapIfNeeded();
         if(!routePlanned){
-
+            mPlanningModule = new PlanningModule(mStartingAddr, mEndingAddr, mHandler);
+            mPlanningModule.start();
         }
     }
 
@@ -83,7 +85,7 @@ public class MapsActivity extends FragmentActivity {
     private Handler mHandler = new Handler(){
         @Override
         public void handleMessage(Message message){
-            Log.d(MainActivity.TAG, "PlanningModule, message received (" + message.what + ")");
+            Log.d(MainActivity.TAG, "MapsActivity, message received (" + message.what + ")");
             switch(message.what){
                 case HandlerCodes.UPDATE_PROGRESS:
                     break;
