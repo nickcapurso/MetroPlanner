@@ -1,7 +1,10 @@
 package com.example.nickcapurso.mapsapplication;
 
-import android.os.AsyncTask;
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
@@ -10,35 +13,33 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-
 public class MapsActivity extends FragmentActivity {
 
+    private boolean routePlanned;
+
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+    private Intent mIntent;
+    private AddressInfo mStartingAddr;
+    private AddressInfo mEndingAddr;
+    private ProgressDialog mDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
+
+        mStartingAddr = (AddressInfo) getIntent().getParcelableExtra("startingAddr");
+        mEndingAddr = (AddressInfo) getIntent().getParcelableExtra("endingAddr");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+        if(!routePlanned){
 
-        new WmataTest().execute("n/a");
+        }
     }
 
     /**
@@ -64,7 +65,7 @@ public class MapsActivity extends FragmentActivity {
                     .getMap();
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
-                setUpMap();
+                //setUpMap();
             }
         }
     }
@@ -79,36 +80,14 @@ public class MapsActivity extends FragmentActivity {
         mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
 
-    class WmataTest extends AsyncTask<String, Void, Integer> {
-
-        protected Integer doInBackground(String... urls) {
-            HttpClient httpclient = (HttpClient) HttpClients.createDefault();
-
-            try{
-                URIBuilder builder = new URIBuilder("https://api.wmata.com/Rail.svc/json/jLines");
-                // Specify your subscription key
-                Log.d("TEST", "1");
-                builder.setParameter("api_key", "kfgpmgvfgacx98de9q3xazww");
-                URI uri = builder.build();
-                HttpGet request = new HttpGet(uri);
-                Log.d("TEST", "2");
-
-                HttpResponse response = httpclient.execute(request);
-                Log.d("TEST", "3");
-                HttpEntity entity = response.getEntity();
-                Log.d("TEST", "4");
-                if (entity != null) {
-                    System.out.println(EntityUtils.toString(entity));
-                }
-                return 1;
+    private Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message message){
+            Log.d(MainActivity.TAG, "PlanningModule, message received (" + message.what + ")");
+            switch(message.what){
+                case HandlerCodes.UPDATE_PROGRESS:
+                    break;
             }
-            catch (IOException e)
-            {
-                Log.d("TEST", "IOException");
-            } catch (URISyntaxException e) {
-                Log.d("TEST", "URISyntaxException");
-            }
-            return 0;
         }
-    }
+    };
 }

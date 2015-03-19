@@ -1,6 +1,7 @@
 package com.example.nickcapurso.mapsapplication;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -20,6 +21,7 @@ public class IncidentsActivity extends Activity {
     private static final String BUS_INCIDENTS_URL = "https://api.wmata.com/Incidents.svc/json/BusIncidents";
 
     private LinearLayout mMainLayout;
+    private ProgressDialog mDialog;
 
    @Override
    protected void onCreate(Bundle savedInstanceState){
@@ -33,7 +35,8 @@ public class IncidentsActivity extends Activity {
     public void onResume(){
         super.onResume();
         mMainLayout.removeAllViews();
-        new JSONFetcher(this, mHandler, "Loading Incidents...").execute(RAIL_INCIDENTS_URL, "api_key", WMATA_API_KEY);
+        mDialog = ProgressDialog.show(this, "Please Wait...", "Finding address...", true);
+        new JSONFetcher(mHandler).execute(RAIL_INCIDENTS_URL, "api_key", WMATA_API_KEY);
     }
 
     private void incidentsFetched(String incidentsJSON){
@@ -75,6 +78,7 @@ public class IncidentsActivity extends Activity {
         public void handleMessage(Message message){
             switch(message.what){
                 case HandlerCodes.JSON_FETCH_DONE:
+                    mDialog.cancel();
                     incidentsFetched((String)message.obj);
                     break;
             }

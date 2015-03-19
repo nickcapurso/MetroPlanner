@@ -1,7 +1,5 @@
 package com.example.nickcapurso.mapsapplication;
 
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
@@ -24,20 +22,10 @@ import java.net.URISyntaxException;
  * Created by nickcapurso on 3/4/15.
  */
 public class JSONFetcher extends AsyncTask<String, Void, String>{
-    private Context context;
     private Handler client;
-    private String loadingMessage;
-    private ProgressDialog dialog;
 
-    public JSONFetcher(Context context, Handler client, String loadingMessage){
-        this.context = context;
+    public JSONFetcher(Handler client){
         this.client = client;
-        this.loadingMessage = loadingMessage;
-    }
-
-    @Override
-    protected void onPreExecute() {
-        dialog = ProgressDialog.show(context, "Please Wait...", loadingMessage, true);
     }
 
     @Override
@@ -76,6 +64,5 @@ public class JSONFetcher extends AsyncTask<String, Void, String>{
         Message message = client.obtainMessage(HandlerCodes.JSON_FETCH_DONE);
         message.obj = result;
         client.sendMessage(message);
-        dialog.cancel();
     }
 }
