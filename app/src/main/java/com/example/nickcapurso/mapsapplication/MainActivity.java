@@ -1,8 +1,10 @@
 package com.example.nickcapurso.mapsapplication;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
@@ -12,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -24,7 +27,10 @@ public class MainActivity extends Activity implements LocationListener{
     public static final String TAG = "MetroPlanner";
     private LocationManager mLocationManager;
     private ProgressDialog mDialog;
-    private AddressInfo mStartingAddr;
+    private AddressInfo mStartingAddr, mEndingAddr = null;
+    private String mEndingAddrString;
+
+    private boolean usingPlanTripDialog, mGettingEndingAddr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +57,7 @@ public class MainActivity extends Activity implements LocationListener{
                 break;
             case R.id.btnPlanTrip:
                 Log.d(TAG, "btnPlanTrip");
+                showPlanTripDialog();
                 break;
             case R.id.btnTripHistory:
                 Log.d(TAG, "btnTripHistory");
@@ -72,21 +79,88 @@ public class MainActivity extends Activity implements LocationListener{
             switch(message.what){
                 case HandlerCodes.JSON_FETCH_DONE:
                     mDialog.cancel();
-                    AddressPicker addressPicker = new AddressPicker(MainActivity.this, this);
+                    AddressPicker addressPicker;
+                    if(!usingPlanTripDialog)
+                        addressPicker = new AddressPicker(MainActivity.this, this);
+                    else
+                        addressPicker = new AddressPicker(MainActivity.this, this, !mGettingEndingAddr? "Choose Starting Address" : "Choose Ending Address");
                     addressPicker.show((String) message.obj);
                     break;
                 case HandlerCodes.ADDRESS_CHOSEN:
-                    mStartingAddr = (AddressInfo)message.obj;
-                    Intent startMaps = new Intent(MainActivity.this, MapsActivity.class);
-                    startMaps.putExtra("startingAddr", mStartingAddr);
-                    startMaps.putExtra("endingAddr", mStartingAddr);
-                    startActivity(startMaps);
-                    //mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Obtaining Location Fix",true);
-                    //mLocationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, MainActivity.this, null);
+                    if(!usingPlanTripDialog) {
+                        mStartingAddr = (AddressInfo)message.obj;
+                        mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Obtaining Location Fix", true);
+                        mLocationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, MainActivity.this, null);
+                    }else{
+                        if(!mGettingEndingAddr) {
+                            mStartingAddr = (AddressInfo)message.obj;
+                            mGettingEndingAddr = true;
+                            mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Finding ending address...", true);
+                            new JSONFetcher(mHandler).execute(API_URLS.GEOCODING, "address", mEndingAddrString);
+                        }else{
+                            mEndingAddr = (AddressInfo)message.obj;
+                            mGettingEndingAddr = false;
+                            Intent startMaps = new Intent(MainActivity.this, MapsActivity.class);
+                            startMaps.putExtra("startingAddr", mStartingAddr);
+                            startMaps.putExtra("endingAddr", mEndingAddr);
+                            startActivity(startMaps);
+                        }
+                    }
+                    break;
+                case HandlerCodes.ADDRESS_PICKER_CANCELLED:
+                    mGettingEndingAddr = false;
                     break;
             }
         }
     };
+
+
+    private void showPlanTripDialog(){
+        usingPlanTripDialog = true;
+
+        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.dialog_plantrip, null);
+
+        final EditText etTripStart = (EditText)layout.findViewById(R.id.etTripStart);
+        final EditText etTripEnd = (EditText)layout.findViewById(R.id.etTripEnd);
+
+
+        dialogBuilder.setView(layout);
+        dialogBuilder.setTitle("Enter Trip Details");
+        dialogBuilder.setCancelable(false);
+        dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                mGettingEndingAddr = usingPlanTripDialog = false;
+                dialog.cancel();
+            }
+        });
+
+        dialogBuilder.setPositiveButton("Go!", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                //mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Finding starting address...", true);
+                //mEndingAddrString = etTripEnd.getText().toString();
+                //new JSONFetcher(mHandler).execute(API_URLS.GEOCODING, "address", etTripStart.getText().toString());
+            }
+        });
+
+//        dialogBuilder.show();
+
+        final AlertDialog planTripDialog = dialogBuilder.create();
+        planTripDialog.show();
+        planTripDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener((new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Finding starting address...", true);
+                mEndingAddrString = etTripEnd.getText().toString();
+                new JSONFetcher(mHandler).execute(API_URLS.GEOCODING, "address", etTripStart.getText().toString());
+            }
+        }));
+    }
 
     @Override
     public void onLocationChanged(Location location) {

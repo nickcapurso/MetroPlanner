@@ -24,6 +24,8 @@ public class AddressPicker {
     private final Context mContext;
     private final LocationManager mLocationManager;
     private final Handler mClientHandler;
+    private AlertDialog mAlertDialog;
+    private String mTitle = "";
 
     public AddressPicker(Context context, Handler clientHandler){
         mContext = context;
@@ -32,8 +34,16 @@ public class AddressPicker {
         PADDING_SMALL = (int) mContext.getResources().getDimension(R.dimen.padding_small);
     }
 
+    public AddressPicker(Context context, Handler clientHandler, String title){
+        mContext = context;
+        mClientHandler = clientHandler;
+        mLocationManager = (LocationManager)mContext.getSystemService(Context.LOCATION_SERVICE);
+        mTitle = title;
+        PADDING_SMALL = (int) mContext.getResources().getDimension(R.dimen.padding_small);
+    }
+
     public void show(String addressJSON){
-        final AlertDialog.Builder addressPicker = new AlertDialog.Builder(mContext);
+        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(mContext);
         JSONObject jsonParser = null;
         JSONArray jsonArray = null;
         LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -63,6 +73,7 @@ public class AddressPicker {
                     public void onClick(View view) {
                         Log.d(MainActivity.TAG, address + ", lat: " + latitude + ", lng: " + longitude);
                         mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.ADDRESS_CHOSEN, new AddressInfo(address,latitude,longitude)));
+                        mAlertDialog.cancel();
                     }
                 });
 
@@ -74,16 +85,19 @@ public class AddressPicker {
             showToast("Error performing address lookup");
         }
 
-        addressPicker.setView(layout);
-        addressPicker.setTitle("Select Closest Match");
-        addressPicker.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        dialogBuilder.setView(layout);
+        dialogBuilder.setTitle(mTitle.equals("") ? "Select Closest Match" : mTitle);
+        dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
+                mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.ADDRESS_PICKER_CANCELLED));
                 dialog.cancel();
             }
         });
         mainLayout.invalidate();
-        addressPicker.show();
+        mAlertDialog = dialogBuilder.create();
+        mAlertDialog.setCancelable(false);
+        mAlertDialog.show();
     }
 
     private boolean checkStatusCode(String status){

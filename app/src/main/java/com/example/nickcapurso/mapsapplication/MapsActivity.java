@@ -14,8 +14,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MapsActivity extends FragmentActivity {
+    private static final int ONE_SECOND = 1000;
 
-    private boolean routePlanned;
+    private boolean mRoutePlanned;
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private Intent mIntent;
@@ -38,10 +39,23 @@ public class MapsActivity extends FragmentActivity {
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
-        if(!routePlanned){
+        if(!mRoutePlanned){
             mPlanningModule = new PlanningModule(mStartingAddr, mEndingAddr, mHandler);
-            mPlanningModule.start();
+            showProgessDialog();
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(HandlerCodes.START_PLANNING_MODULE), ONE_SECOND);
+
         }
+    }
+
+    private void showProgessDialog(){
+        mDialog = new ProgressDialog(this);
+        mDialog.setCancelable(false);
+        mDialog.setIndeterminate(false);
+        mDialog.setMax(6);
+        mDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mDialog.setTitle("Please Wait...");
+        mDialog.setMessage("Planning Metro Route...");
+        mDialog.show();
     }
 
     /**
@@ -88,6 +102,18 @@ public class MapsActivity extends FragmentActivity {
             Log.d(MainActivity.TAG, "MapsActivity, message received (" + message.what + ")");
             switch(message.what){
                 case HandlerCodes.UPDATE_PROGRESS:
+                    mDialog.incrementProgressBy((Integer)message.obj);
+//                    if(mDialog.getProgress() == 6) {
+//                        mRoutePlanned = true;
+//                        mDialog.cancel();
+//                    }
+                    break;
+                case HandlerCodes.START_PLANNING_MODULE:
+                    mPlanningModule.start();
+                    break;
+                case HandlerCodes.PLANNING_MODULE_DONE:
+                    mRoutePlanned = true;
+                    mDialog.cancel();
                     break;
             }
         }

@@ -28,6 +28,7 @@ public class PlanningModule{
     private final AddressInfo mStartingAddr, mEndingAddr;
     private StationInfo mStartingStation, mEndingStation, mMiddleStation;
     private ArrayList<StationInfo> mFirstLeg, mSecondLeg;
+    private ArrayList<String> mCommonLines;
     private final Handler mClientHandler;
 
     public PlanningModule(AddressInfo startingAddr, AddressInfo endingAddr, Handler client){
@@ -50,6 +51,7 @@ public class PlanningModule{
         Message msg = mHandler.obtainMessage(HandlerCodes.FETCH_DELAY_DONE);
         switch(mState){
             case STATE_GET_ENTRANCES:
+                mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
                 if(mCurrQueryNum == 0) {
                     mStartingStation = parseStation(jsonResult);
                 }else {
@@ -57,6 +59,7 @@ public class PlanningModule{
                 }
                 break;
             case STATE_GET_LINES:
+                mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
                 if(mCurrQueryNum == 0){
                     mStartingStation.lines = parseStationLines(jsonResult);
                 }else{
@@ -66,29 +69,30 @@ public class PlanningModule{
                 break;
             case STATE_GET_STATION_LIST:
                 if(mCurrQueryNum == 0){
-                    ArrayList<String> commonLines = new ArrayList<String>();
-                    //Parse out station list
                     mFirstLeg = parseStationList(jsonResult);
+                    mCommonLines = getCommonLines(mStartingStation, mEndingStation);
 
-                    for(String line : mStartingStation.lines)
-                        if(mEndingStation.lines.contains(line))
-                            commonLines.add(line);
-
-                    if(commonLines.size() == 0){
-
+                    if(mCommonLines.size() == 0){
+                        Log.d(MainActivity.TAG, "No Common Lines");
+                        mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
                     }else{
-                        for(String line : commonLines)
-                            Log.d(MainActivity.TAG, "Common line: " + line);
+                        mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 2));
                         mState = STATE_FINISHED;
                     }
                 }else{
+                    mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
                     mSecondLeg = parseStationList(jsonResult);
+                    mState = STATE_FINISHED;
                 }
 
                 //If not same lines for both stations, run JSON fetcher again
                 break;
         }
-        mHandler.sendMessageDelayed(msg, ONE_SECOND);
+        if(mState != STATE_FINISHED)
+            mHandler.sendMessageDelayed(msg, ONE_SECOND);
+        else
+            mClientHandler.sendMessageDelayed(mClientHandler.obtainMessage(HandlerCodes.PLANNING_MODULE_DONE), ONE_SECOND);
+
     }
 
     private void continueFetches(){
@@ -127,14 +131,27 @@ public class PlanningModule{
             case STATE_GET_STATION_LIST:
                 if(mCurrQueryNum == 0){
                     mCurrQueryNum ++;
-                    mState = STATE_FINISHED;
                     //Run JSONfetcher for the second line (get station list)
                     Log.d(MainActivity.TAG, "Fetching second station lines");
                     new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY,
                             "LineCode", mEndingStation.lines.get(0));
+                }else{
+
                 }
                 break;
         }
+    }
+
+    private ArrayList<String> getCommonLines(StationInfo startingStation, StationInfo endingStation){
+        ArrayList<String> commonLines = new ArrayList<String>();
+
+        for(String line : startingStation.lines)
+            if(endingStation.lines.contains(line)) {
+                commonLines.add(line);
+                Log.d(MainActivity.TAG, "Common line: " + line);
+            }
+
+        return commonLines;
     }
 
     private StationInfo parseStation(String jsonResult){
