@@ -11,6 +11,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -29,6 +30,7 @@ public class MainActivity extends Activity implements LocationListener{
     private ProgressDialog mDialog;
     private AddressInfo mStartingAddr, mEndingAddr = null;
     private String mEndingAddrString;
+    private CountDownTimer mTimer;
 
     private boolean usingPlanTripDialog, mGettingEndingAddr;
 
@@ -79,6 +81,12 @@ public class MainActivity extends Activity implements LocationListener{
             switch(message.what){
                 case HandlerCodes.JSON_FETCH_DONE:
                     mDialog.cancel();
+
+                    if((String)message.obj == null){
+                        Toast.makeText(MainActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
                     AddressPicker addressPicker;
                     if(!usingPlanTripDialog)
                         addressPicker = new AddressPicker(MainActivity.this, this);
@@ -109,6 +117,9 @@ public class MainActivity extends Activity implements LocationListener{
                     break;
                 case HandlerCodes.ADDRESS_PICKER_CANCELLED:
                     mGettingEndingAddr = false;
+                    break;
+                case HandlerCodes.TIMEOUT:
+                    Toast.makeText(MainActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
                     break;
             }
         }

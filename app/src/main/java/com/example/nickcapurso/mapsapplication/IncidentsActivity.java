@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -75,7 +76,16 @@ public class IncidentsActivity extends Activity {
             switch(message.what){
                 case HandlerCodes.JSON_FETCH_DONE:
                     mDialog.cancel();
+
+                    if((String)message.obj == null){
+                        Toast.makeText(IncidentsActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
                     incidentsFetched((String)message.obj);
+                    break;
+                case HandlerCodes.TIMEOUT:
+                    Toast.makeText(IncidentsActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
                     break;
             }
         }

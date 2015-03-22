@@ -11,4 +11,6 @@ public class HandlerCodes {
     public static final byte UPDATE_PROGRESS = 0x14;
     public static final byte START_PLANNING_MODULE = 0x15;
     public static final byte PLANNING_MODULE_DONE = 0x16;
+    public static final byte PLANNING_MODULE_ERR = 0x17;
+    public static final byte TIMEOUT = 0x18;
 }

@@ -22,10 +22,16 @@ import java.net.URISyntaxException;
  * Created by nickcapurso on 3/4/15.
  */
 public class JSONFetcher extends AsyncTask<String, Void, String>{
-    private Handler client;
+    private Handler mClientHandler;
+    private NetworkTimeout mTimer;
 
     public JSONFetcher(Handler client){
-        this.client = client;
+        mClientHandler = client;
+    }
+
+    @Override
+    protected void onPreExecute() {
+        mTimer = new NetworkTimeout(mClientHandler);
     }
 
     @Override
@@ -60,9 +66,10 @@ public class JSONFetcher extends AsyncTask<String, Void, String>{
 
     @Override
     protected void onPostExecute(String result) {
+        mTimer.cancel();
         Log.d(MainActivity.TAG, "Result: " + result);
-        Message message = client.obtainMessage(HandlerCodes.JSON_FETCH_DONE);
+        Message message = mClientHandler.obtainMessage(HandlerCodes.JSON_FETCH_DONE);
         message.obj = result;
-        client.sendMessage(message);
+        mClientHandler.sendMessage(message);
     }
 }

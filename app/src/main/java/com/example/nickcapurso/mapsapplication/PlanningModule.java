@@ -49,6 +49,25 @@ public class PlanningModule{
 
     private void parseFetchResults(String jsonResult){
         Message msg = mHandler.obtainMessage(HandlerCodes.FETCH_DELAY_DONE);
+        JSONObject topObject;
+
+        if(jsonResult == null || jsonResult.equals("")){
+            String errMsg = "Error: no response from WMATA - make sure you have networking services enabled.";
+            mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.PLANNING_MODULE_ERR, errMsg));
+            return;
+        }
+
+        try {
+            topObject = new JSONObject(jsonResult);
+            if(!topObject.isNull("statusCode")){
+                String errMsg = "Error (" + topObject.getInt("statusCode") + "): " + topObject.getString("message");
+                mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.PLANNING_MODULE_ERR, errMsg));
+                return;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
         switch(mState){
             case STATE_GET_ENTRANCES:
                 mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
@@ -88,10 +107,12 @@ public class PlanningModule{
                 //If not same lines for both stations, run JSON fetcher again
                 break;
         }
-        if(mState != STATE_FINISHED)
+        if(mState != STATE_FINISHED) {
             mHandler.sendMessageDelayed(msg, ONE_SECOND);
-        else
+            //mHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.FETCH_DELAY_DONE));
+        }else {
             mClientHandler.sendMessageDelayed(mClientHandler.obtainMessage(HandlerCodes.PLANNING_MODULE_DONE), ONE_SECOND);
+        }
 
     }
 
@@ -205,6 +226,7 @@ public class PlanningModule{
 
             for(int i = 0; i < stationsList.length(); i++){
                 JSONObject station = stationsList.getJSONObject(i);
+                //TODO add StationTogether codes (ex. Metro Center is A01 (red line) and C01 (silver/orange/blue)
                 temp.add(new StationInfo(station.getString("Name"), station.getDouble("Lat"), station.getDouble("Lon"), station.getString("Code")));
             }
         } catch (JSONException e) {

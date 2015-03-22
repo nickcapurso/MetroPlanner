@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -114,6 +115,13 @@ public class MapsActivity extends FragmentActivity {
                 case HandlerCodes.PLANNING_MODULE_DONE:
                     mRoutePlanned = true;
                     mDialog.cancel();
+                    break;
+                case HandlerCodes.PLANNING_MODULE_ERR:
+                    mDialog.cancel();
+                    Toast.makeText(MapsActivity.this, (String)message.obj, Toast.LENGTH_LONG).show();
+                    break;
+                case HandlerCodes.TIMEOUT:
+                    Toast.makeText(MapsActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
                     break;
             }
         }
