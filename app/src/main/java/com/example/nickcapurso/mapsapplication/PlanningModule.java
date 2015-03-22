@@ -128,6 +128,7 @@ public class PlanningModule{
                     mCurrQueryNum = 0;
                     mState = STATE_GET_LINES;
                     //Run JSONfetcher (get lines)
+                    //TODO fetch lines based on alternate station codes
                     Log.d(MainActivity.TAG, "Fetching first station lines");
                     new JSONFetcher(mHandler).execute(API_URLS.STATION_INFO, "api_key", API_URLS.WMATA_API_KEY,
                             "StationCode", mStartingStation.code);
@@ -137,6 +138,7 @@ public class PlanningModule{
                 if(mCurrQueryNum == 0){
                     mCurrQueryNum ++;
                     //Run JSONfetcher (second get line)
+                    //TODO fetch lines based on alternate station codes
                     Log.d(MainActivity.TAG, "Fetching second station lines");
                     new JSONFetcher(mHandler).execute(API_URLS.STATION_INFO, "api_key", API_URLS.WMATA_API_KEY,
                             "StationCode", mEndingStation.code);
@@ -227,14 +229,16 @@ public class PlanningModule{
             for(int i = 0; i < stationsList.length(); i++){
                 JSONObject station = stationsList.getJSONObject(i);
                 //TODO add StationTogether codes (ex. Metro Center is A01 (red line) and C01 (silver/orange/blue)
-                temp.add(new StationInfo(station.getString("Name"), station.getDouble("Lat"), station.getDouble("Lon"), station.getString("Code")));
+                temp.add(new StationInfo(station.getString("Name"), station.getDouble("Lat"), station.getDouble("Lon"), station.getString("Code"),
+                        station.getString("StationTogether1"), station.getString("StationTogether2")));
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         for(StationInfo info : temp)
-            Log.d(MainActivity.TAG, "Added, name: " + info.name + ", lat: " + info.latitude + ", lon: " + info.longitude + ", code: " + info.code);
+            Log.d(MainActivity.TAG, "Added, name: " + info.name + ", lat: " + info.latitude + ", lon: " + info.longitude + ", code: " + info.code
+            + ", altCode1: " + info.altCode1 + ", altCode2: " + info.altCode2);
         return temp;
     }
 
