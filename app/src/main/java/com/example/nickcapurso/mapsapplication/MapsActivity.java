@@ -2,6 +2,7 @@ package com.example.nickcapurso.mapsapplication;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -9,15 +10,20 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity {
     private static final int ONE_SECOND = 1000;
 
     private boolean mRoutePlanned;
+    private double mCenterLatitude, mCenterLongitude;
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private Intent mIntent;
@@ -25,6 +31,7 @@ public class MapsActivity extends FragmentActivity {
     private AddressInfo mEndingAddr;
     private PlanningModule mPlanningModule;
     private ProgressDialog mDialog;
+    private ArrayList<MetroPath> mPaths;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +41,8 @@ public class MapsActivity extends FragmentActivity {
 
         mStartingAddr = (AddressInfo) getIntent().getParcelableExtra("startingAddr");
         mEndingAddr = (AddressInfo) getIntent().getParcelableExtra("endingAddr");
+        mPaths = new ArrayList<MetroPath>();
+        mCenterLatitude = mCenterLongitude = 0;
     }
 
     @Override
@@ -57,6 +66,67 @@ public class MapsActivity extends FragmentActivity {
         mDialog.setTitle("Please Wait...");
         mDialog.setMessage("Planning Metro Route...");
         mDialog.show();
+    }
+
+    private void drawPaths(){
+        for(MetroPath path : mPaths){
+            if(path.sameLine){
+                mMap.addPolyline(new PolylineOptions()
+                        .add(new LatLng(path.startStation.latitude, path.startStation.longitude),
+                        new LatLng(path.endStation.latitude, path.endStation.longitude))
+                        .width(5)
+                        .color(getColor(path.startLine)));
+
+                mCenterLatitude += path.startStation.latitude + path.endStation.latitude;
+                mCenterLongitude += path.endStation.longitude + path.endStation.longitude;
+            }else{
+                mMap.addPolyline(new PolylineOptions()
+                        .add(new LatLng(path.startStation.latitude, path.startStation.longitude),
+                                new LatLng(path.intersectionStation.latitude, path.intersectionStation.longitude))
+                        .width(5)
+                        .color(getColor(path.startLine)));
+
+                mMap.addPolyline(new PolylineOptions()
+                        .add(new LatLng(path.intersectionStation.latitude, path.intersectionStation.longitude),
+                                new LatLng(path.endStation.latitude, path.endStation.longitude))
+                        .width(5)
+                        .color(getColor(path.endLine)));
+            }
+        }
+
+        mCenterLatitude = mCenterLatitude / (2*mPaths.size());
+        mCenterLongitude = mCenterLongitude / (2*mPaths.size());
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(mCenterLatitude, mCenterLongitude)));
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(12));
+    }
+
+    public int getColor(String line){
+        int color;
+        //RD, BL, YL, OR, GR, or SV
+        switch(line){
+            case "RD":
+                color = Color.RED;
+                break;
+            case "BL":
+                color = Color.BLUE;
+                break;
+            case "YL":
+                color = Color.YELLOW;
+                break;
+            case "OR":
+                //TODO
+                color = Color.BLACK;
+                break;
+            case "GR":
+                color = Color.GREEN;
+                break;
+            case "SV":
+                color = Color.GRAY;
+                break;
+            default:
+                color = Color.BLACK;
+        }
+        return color;
     }
 
     /**
@@ -83,6 +153,11 @@ public class MapsActivity extends FragmentActivity {
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
                 //setUpMap();
+               /* Polyline startLine = mMap.addPolyline(new PolylineOptions()
+                        .add(new LatLng(38.9006980092, -77.050277739), new LatLng(38.9050688072, -76.8420375202))
+                        .width(5)
+                        .color(Color.BLUE));
+                        */
             }
         }
     }
@@ -114,6 +189,8 @@ public class MapsActivity extends FragmentActivity {
                     break;
                 case HandlerCodes.PLANNING_MODULE_DONE:
                     mRoutePlanned = true;
+                    mPaths = (ArrayList<MetroPath>)message.obj;
+                    drawPaths();
                     mDialog.cancel();
                     break;
                 case HandlerCodes.PLANNING_MODULE_ERR:

@@ -33,4 +33,18 @@ public class StationInfo {
         this.altCode2 = altCode2;
         lines = new ArrayList<String>();
     }
+
+    @Override
+    public boolean equals(Object object){
+        if(object instanceof StationInfo){
+            StationInfo station2 = (StationInfo)object;
+            return code.equals(station2.code);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode(){
+        return code.hashCode();
+    }
 }
