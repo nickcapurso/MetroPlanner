@@ -27,7 +27,7 @@ public class PlanningModule{
     private boolean mSameLine;
     private final AddressInfo mStartingAddr, mEndingAddr;
     private StationInfo mStartingStation, mEndingStation, mMiddleStation;
-    private ArrayList<StationInfo> mFirstLeg, mSecondLeg;
+    private ArrayList<MetroPath> mPaths;
     private ArrayList<String> mCommonLines;
     private final Handler mClientHandler;
 
@@ -35,8 +35,7 @@ public class PlanningModule{
         mStartingAddr = startingAddr;
         mEndingAddr = endingAddr;
         mClientHandler = client;
-        mFirstLeg = new ArrayList<StationInfo>();
-        mSecondLeg = new ArrayList<StationInfo>();
+        mPaths = new ArrayList<MetroPath>();
     }
 
     public void start(){
@@ -88,7 +87,8 @@ public class PlanningModule{
                 break;
             case STATE_GET_STATION_LIST:
                 if(mCurrQueryNum == 0){
-                    mFirstLeg = parseStationList(jsonResult);
+                    //TODO add to mPaths
+                    //mFirstLeg = parseStationList(jsonResult);
                     mCommonLines = getCommonLines(mStartingStation, mEndingStation);
 
                     if(mCommonLines.size() == 0){
@@ -100,7 +100,8 @@ public class PlanningModule{
                     }
                 }else{
                     mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
-                    mSecondLeg = parseStationList(jsonResult);
+                    //TODO add to mPaths
+                    //mSecondLeg = parseStationList(jsonResult);
                     mState = STATE_FINISHED;
                 }
 
