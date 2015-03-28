@@ -15,12 +15,17 @@ public class StationInfo {
 
     public StationInfo(){
         lines = new ArrayList<String>();
+        name = "";
+        altCode1 = "";
+        altCode2 = "";
     }
     public StationInfo(String name, double latitude, double longitude, String code){
         this.name = name;
         this.longitude = longitude;
         this.latitude = latitude;
         this.code = code;
+        altCode1 = "";
+        altCode2 = "";
         lines = new ArrayList<String>();
     }
 
@@ -38,13 +43,13 @@ public class StationInfo {
     public boolean equals(Object object){
         if(object instanceof StationInfo){
             StationInfo station2 = (StationInfo)object;
-            return code.equals(station2.code);
+            return name.equals(station2.name);
         }
         return false;
     }
 
     @Override
     public int hashCode(){
-        return code.hashCode();
+        return name.hashCode();
     }
 }

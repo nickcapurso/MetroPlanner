@@ -10,7 +10,6 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -61,7 +60,7 @@ public class MapsActivity extends FragmentActivity {
         mDialog = new ProgressDialog(this);
         mDialog.setCancelable(false);
         mDialog.setIndeterminate(false);
-        mDialog.setMax(6);
+        mDialog.setMax(10);
         mDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         mDialog.setTitle("Please Wait...");
         mDialog.setMessage("Planning Metro Route...");
@@ -71,33 +70,45 @@ public class MapsActivity extends FragmentActivity {
     private void drawPaths(){
         for(MetroPath path : mPaths){
             if(path.sameLine){
-                mMap.addPolyline(new PolylineOptions()
-                        .add(new LatLng(path.startStation.latitude, path.startStation.longitude),
-                        new LatLng(path.endStation.latitude, path.endStation.longitude))
-                        .width(5)
-                        .color(getColor(path.startLine)));
+                ArrayList<StationInfo> firstLeg = path.firstLeg;
+                for(int i = 0; i < firstLeg.size()-1; i++) {
+                    mMap.addPolyline(new PolylineOptions()
+                            .add(new LatLng(firstLeg.get(i).latitude, firstLeg.get(i).longitude),
+                                    new LatLng(firstLeg.get(i + 1).latitude, firstLeg.get(i + 1).longitude))
+                            .width(5)
+                            .color(getColor(path.startLine)));
+                }
+                /*
 
                 mCenterLatitude += path.startStation.latitude + path.endStation.latitude;
-                mCenterLongitude += path.endStation.longitude + path.endStation.longitude;
+                mCenterLongitude += path.startStation.longitude + path.endStation.longitude;
+                */
             }else{
-                mMap.addPolyline(new PolylineOptions()
-                        .add(new LatLng(path.startStation.latitude, path.startStation.longitude),
-                                new LatLng(path.intersectionStation.latitude, path.intersectionStation.longitude))
-                        .width(5)
-                        .color(getColor(path.startLine)));
+                ArrayList<StationInfo> firstLeg = path.firstLeg;
+                ArrayList<StationInfo> secondLeg = path.secondLeg;
 
-                mMap.addPolyline(new PolylineOptions()
-                        .add(new LatLng(path.intersectionStation.latitude, path.intersectionStation.longitude),
-                                new LatLng(path.endStation.latitude, path.endStation.longitude))
-                        .width(5)
-                        .color(getColor(path.endLine)));
+                for(int i = 0; i < firstLeg.size()-1; i++){
+                    mMap.addPolyline(new PolylineOptions()
+                            .add(new LatLng(firstLeg.get(i).latitude, firstLeg.get(i).longitude),
+                                    new LatLng(firstLeg.get(i+1).latitude, firstLeg.get(i+1).longitude))
+                            .width(5)
+                            .color(getColor(path.startLine)));
+
+                    if(i < secondLeg.size()-1){
+                        mMap.addPolyline(new PolylineOptions()
+                                .add(new LatLng(secondLeg.get(i).latitude, secondLeg.get(i).longitude),
+                                        new LatLng(secondLeg.get(i+1).latitude, secondLeg.get(i+1).longitude))
+                                .width(5)
+                                .color(getColor(path.endLine)));
+                    }
+                }
             }
         }
 
         mCenterLatitude = mCenterLatitude / (2*mPaths.size());
         mCenterLongitude = mCenterLongitude / (2*mPaths.size());
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(mCenterLatitude, mCenterLongitude)));
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(12));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(mPaths.get(0).startStation.latitude, mPaths.get(0).startStation.longitude)));
+ //       mMap.moveCamera(CameraUpdateFactory.zoomTo(12));
     }
 
     public int getColor(String line){
