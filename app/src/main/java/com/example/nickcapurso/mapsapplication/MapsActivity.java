@@ -20,6 +20,7 @@ import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity {
     private static final int ONE_SECOND = 1000;
+    private static final int LINE_WIDTH = 7;
 
     private boolean mRoutePlanned;
     private double mCenterLatitude, mCenterLongitude;
@@ -75,7 +76,7 @@ public class MapsActivity extends FragmentActivity {
                     mMap.addPolyline(new PolylineOptions()
                             .add(new LatLng(firstLeg.get(i).latitude, firstLeg.get(i).longitude),
                                     new LatLng(firstLeg.get(i + 1).latitude, firstLeg.get(i + 1).longitude))
-                            .width(5)
+                            .width(LINE_WIDTH)
                             .color(getColor(path.startLine)));
                 }
                 /*
@@ -84,22 +85,36 @@ public class MapsActivity extends FragmentActivity {
                 mCenterLongitude += path.startStation.longitude + path.endStation.longitude;
                 */
             }else{
-                ArrayList<StationInfo> firstLeg = path.firstLeg;
-                ArrayList<StationInfo> secondLeg = path.secondLeg;
+                ArrayList<StationInfo> drawLongerSection;
+                ArrayList<StationInfo> drawShorterSection;
+                String longerColor, shorterColor;
 
-                for(int i = 0; i < firstLeg.size()-1; i++){
+                Log.d(MainActivity.TAG, "First color: " + path.startLine + " second: " + path.endLine);
+                if(path.firstLeg.size() >= path.secondLeg.size()){
+                    drawLongerSection = path.firstLeg;
+                    drawShorterSection = path.secondLeg;
+                    longerColor = path.startLine;
+                    shorterColor = path.endLine;
+                }else{
+                    drawLongerSection = path.secondLeg;
+                    drawShorterSection = path.firstLeg;
+                    longerColor = path.endLine;
+                    shorterColor = path.startLine;
+                }
+
+                for(int i = 0; i < drawLongerSection.size()-1; i++){
                     mMap.addPolyline(new PolylineOptions()
-                            .add(new LatLng(firstLeg.get(i).latitude, firstLeg.get(i).longitude),
-                                    new LatLng(firstLeg.get(i+1).latitude, firstLeg.get(i+1).longitude))
-                            .width(5)
-                            .color(getColor(path.startLine)));
+                            .add(new LatLng(drawLongerSection.get(i).latitude, drawLongerSection.get(i).longitude),
+                                    new LatLng(drawLongerSection.get(i+1).latitude, drawLongerSection.get(i+1).longitude))
+                            .width(LINE_WIDTH)
+                            .color(getColor(longerColor)));
 
-                    if(i < secondLeg.size()-1){
+                    if(i < drawShorterSection.size()-1){
                         mMap.addPolyline(new PolylineOptions()
-                                .add(new LatLng(secondLeg.get(i).latitude, secondLeg.get(i).longitude),
-                                        new LatLng(secondLeg.get(i+1).latitude, secondLeg.get(i+1).longitude))
-                                .width(5)
-                                .color(getColor(path.endLine)));
+                                .add(new LatLng(drawShorterSection.get(i).latitude, drawShorterSection.get(i).longitude),
+                                        new LatLng(drawShorterSection.get(i+1).latitude, drawShorterSection.get(i+1).longitude))
+                                .width(LINE_WIDTH)
+                                .color(getColor(shorterColor)));
                     }
                 }
             }
@@ -125,8 +140,7 @@ public class MapsActivity extends FragmentActivity {
                 color = Color.YELLOW;
                 break;
             case "OR":
-                //TODO
-                color = Color.BLACK;
+                color = Color.rgb(255,153,0);
                 break;
             case "GR":
                 color = Color.GREEN;

@@ -25,6 +25,7 @@ public class PlanningModule{
     private static final int ONE_SECOND = 1000;
     private static final int API_DELAY = ONE_SECOND / 2;
 
+    private static final String[] lines = { "RD", "BL", "OR", "SV", "YL", "GR"};
     private Map<String, ArrayList<StationInfo>> mAllLines;
 
     private byte mState, mCurrQueryNum;
@@ -116,69 +117,32 @@ public class PlanningModule{
                         for(String s : commonLines)
                             mPaths.add(getPath(mAllLines.get(firstLine), s, mStartingStation, null, s, mEndingStation));
                     }
+                }else if(mCurrQueryNum < lines.length){
+                    if(!mAllLines.containsKey(lines[mCurrQueryNum-1]))
+                        mAllLines.put(lines[mCurrQueryNum-1], parseStationList(jsonResult));
+
                 }else{
-                    mAllLines = parseAllStations(jsonResult);
-                    //for(String line : mStartingStation.lines){
+                    //Parse final station list
+                    if(!mAllLines.containsKey(lines[mCurrQueryNum-1]))
+                        mAllLines.put(lines[mCurrQueryNum-1], parseStationList(jsonResult));
+
                     MetroPath firstPath = getPath(mAllLines.get(mStartingStation.lines.get(0)), mStartingStation.lines.get(0), mStartingStation,
                             mAllLines.get(mEndingStation.lines.get(0)), mEndingStation.lines.get(0), mEndingStation);
-
-                    StationInfo intersection;
-
-                    if(firstPath.firstLeg.indexOf(mStartingStation) == 0){
-                        intersection = firstPath.firstLeg.get(firstPath.firstLeg.size()-1);
-                    }else{
-                        intersection = firstPath.firstLeg.get(0);
-                    }
-
-                    Log.d(MainActivity.TAG, "mSS location: " + firstPath.firstLeg.indexOf(mStartingStation));
-                    for(int i = 1; i < mStartingStation.lines.size(); i++){
-                        String currLine = mStartingStation.lines.get(i);
-                        Log.d(MainActivity.TAG, "Curr line " + currLine);
-
-                        if(mAllLines.get(currLine).contains(intersection)){
-                            firstPath.firstLegSharedLines.add(currLine);
-                            Log.d(MainActivity.TAG, "First leg shared with: " + currLine);
-                        }
-                    }
-
-                    for(int i = 1; i < mEndingStation.lines.size(); i++){
-                        String currLine = mEndingStation.lines.get(i);
-
-                        if(mAllLines.get(currLine).contains(intersection)){
-                            firstPath.secondLegSharedLines.add(currLine);
-                            Log.d(MainActivity.TAG, "Second leg shared with: " + currLine);
-                        }
-                    }
+                    addSharedLines(firstPath);
 
                     mPaths.add(firstPath);
 
+                    //TODO next, consider "new lines" while iterating through the station list and going "up" or "down" the line (station count)
+
                     mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
                     mState = STATE_FINISHED;
-
-                    //}
-                    /*
-                    mEndingLines.add( parseStationList(jsonResult));
-
-                    //TODO put this stuff into a thread for every line
-                    mPaths.add(getPath(mStartingLines.get(0), mStartingStation.lines.get(0), mStartingStation,
-                            mEndingLines.get(0), mEndingStation.lines.get(0), mEndingStation));
-
-                    //Second station list fetched
-                    mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
-                    mState = STATE_FINISHED;
-                    */
                 }
-
-                //If not same lines for both stations, run JSON fetcher again
                 break;
         }
-        if(mState != STATE_FINISHED) {
+        if(mState != STATE_FINISHED)
             mHandler.sendMessageDelayed(msg, API_DELAY);
-            //mHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.FETCH_DELAY_DONE));
-        }else {
+        else
             mClientHandler.sendMessageDelayed(mClientHandler.obtainMessage(HandlerCodes.PLANNING_MODULE_DONE, mPaths), API_DELAY);
-        }
-
     }
 
     private MetroPath getPath(ArrayList<StationInfo> line1, String line1Color, StationInfo startStation, ArrayList<StationInfo> line2, String line2Color, StationInfo endStation){
@@ -212,6 +176,38 @@ public class PlanningModule{
 
 
         return path;
+    }
+
+
+
+    private void addSharedLines(MetroPath path){
+        StationInfo intersection;
+
+        if(path.firstLeg.indexOf(mStartingStation) == 0){
+            intersection = path.firstLeg.get(path.firstLeg.size()-1);
+        }else{
+            intersection = path.firstLeg.get(0);
+        }
+
+        Log.d(MainActivity.TAG, "mSS location: " + path.firstLeg.indexOf(mStartingStation));
+        for(int i = 1; i < mStartingStation.lines.size(); i++){
+            String currLine = mStartingStation.lines.get(i);
+            Log.d(MainActivity.TAG, "Curr line " + currLine);
+
+            if(mAllLines.get(currLine).contains(intersection)){
+                path.firstLegSharedLines.add(currLine);
+                Log.d(MainActivity.TAG, "First leg shared with: " + currLine);
+            }
+        }
+
+        for(int i = 1; i < mEndingStation.lines.size(); i++){
+            String currLine = mEndingStation.lines.get(i);
+
+            if(mAllLines.get(currLine).contains(intersection)){
+                path.secondLegSharedLines.add(currLine);
+                Log.d(MainActivity.TAG, "Second leg shared with: " + currLine);
+            }
+        }
     }
 
     private void continueFetches(){
@@ -279,7 +275,7 @@ public class PlanningModule{
                         new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY,
                                 "LineCode", mStartingStation.lines.get(0));
                     }
-                }else{
+                }else {
                     mCurrQueryNum = 0;
                     mState = STATE_GET_STATION_LIST;
 
@@ -294,8 +290,13 @@ public class PlanningModule{
 
                     mCurrQueryNum ++;
                     //Run JSONfetcher get every other line
-                    Log.d(MainActivity.TAG, "Fetching second station list");
-                    new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY);
+                    Log.d(MainActivity.TAG, "Fetching list for line: " + lines[mCurrQueryNum-1]);
+                    //TODO change to iterate over each item in the lines string array, where the index is mCurrQueryNum-1
+                    new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY, "LineCode", lines[mCurrQueryNum-1]);
+                }else if(mCurrQueryNum < lines.length){
+                    mCurrQueryNum ++;
+                    Log.d(MainActivity.TAG, "Fetching list for line: " + lines[mCurrQueryNum-1]);
+                    new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY, "LineCode", lines[mCurrQueryNum-1]);
                 }
                 break;
         }
