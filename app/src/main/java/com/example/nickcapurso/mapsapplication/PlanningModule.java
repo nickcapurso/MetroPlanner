@@ -9,6 +9,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by nickcapurso on 3/18/15.
@@ -23,10 +25,12 @@ public class PlanningModule{
     private static final int ONE_SECOND = 1000;
     private static final int API_DELAY = ONE_SECOND / 2;
 
+    private Map<String, ArrayList<StationInfo>> mAllLines;
+
     private byte mState, mCurrQueryNum;
     private final AddressInfo mStartingAddr, mEndingAddr;
     private StationInfo mStartingStation, mEndingStation;
-    private ArrayList<ArrayList<StationInfo>> mStartingLines, mEndingLines;
+    //private ArrayList<ArrayList<StationInfo>> mStartingLines, mEndingLines;
     private ArrayList<MetroPath> mPaths;
     private final Handler mClientHandler;
 
@@ -36,8 +40,9 @@ public class PlanningModule{
         mClientHandler = client;
         mPaths = new ArrayList<MetroPath>();
 
-        mStartingLines = new ArrayList<ArrayList<StationInfo>>();
-        mEndingLines = new ArrayList<ArrayList<StationInfo>>();
+        //mStartingLines = new ArrayList<ArrayList<StationInfo>>();
+        //mEndingLines = new ArrayList<ArrayList<StationInfo>>();
+        mAllLines = new HashMap<String, ArrayList<StationInfo>>();
     }
 
     public void start(){
@@ -98,7 +103,9 @@ public class PlanningModule{
             case STATE_GET_STATION_LIST:
                 if(mCurrQueryNum == 0){
                     //First station list fetched
-                    mStartingLines.add( parseStationList(jsonResult));
+                    //mStartingLines.add( parseStationList(jsonResult));
+                    String firstLine = mStartingStation.lines.get(0);
+                    mAllLines.put(firstLine, parseStationList(jsonResult));
 
                     //Check for  common lines
                     ArrayList<String> commonLines = getCommonLines(mStartingStation, mEndingStation);
@@ -107,9 +114,49 @@ public class PlanningModule{
                         mState = STATE_FINISHED;
 
                         for(String s : commonLines)
-                            mPaths.add(getPath(mStartingLines.get(0), s, mStartingStation, null, s, mEndingStation));
+                            mPaths.add(getPath(mAllLines.get(firstLine), s, mStartingStation, null, s, mEndingStation));
                     }
                 }else{
+                    mAllLines = parseAllStations(jsonResult);
+                    //for(String line : mStartingStation.lines){
+                    MetroPath firstPath = getPath(mAllLines.get(mStartingStation.lines.get(0)), mStartingStation.lines.get(0), mStartingStation,
+                            mAllLines.get(mEndingStation.lines.get(0)), mEndingStation.lines.get(0), mEndingStation);
+
+                    StationInfo intersection;
+
+                    if(firstPath.firstLeg.indexOf(mStartingStation) == 0){
+                        intersection = firstPath.firstLeg.get(firstPath.firstLeg.size()-1);
+                    }else{
+                        intersection = firstPath.firstLeg.get(0);
+                    }
+
+                    Log.d(MainActivity.TAG, "mSS location: " + firstPath.firstLeg.indexOf(mStartingStation));
+                    for(int i = 1; i < mStartingStation.lines.size(); i++){
+                        String currLine = mStartingStation.lines.get(i);
+                        Log.d(MainActivity.TAG, "Curr line " + currLine);
+
+                        if(mAllLines.get(currLine).contains(intersection)){
+                            firstPath.firstLegSharedLines.add(currLine);
+                            Log.d(MainActivity.TAG, "First leg shared with: " + currLine);
+                        }
+                    }
+
+                    for(int i = 1; i < mEndingStation.lines.size(); i++){
+                        String currLine = mEndingStation.lines.get(i);
+
+                        if(mAllLines.get(currLine).contains(intersection)){
+                            firstPath.secondLegSharedLines.add(currLine);
+                            Log.d(MainActivity.TAG, "Second leg shared with: " + currLine);
+                        }
+                    }
+
+                    mPaths.add(firstPath);
+
+                    mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
+                    mState = STATE_FINISHED;
+
+                    //}
+                    /*
                     mEndingLines.add( parseStationList(jsonResult));
 
                     //TODO put this stuff into a thread for every line
@@ -119,6 +166,7 @@ public class PlanningModule{
                     //Second station list fetched
                     mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
                     mState = STATE_FINISHED;
+                    */
                 }
 
                 //If not same lines for both stations, run JSON fetcher again
@@ -245,10 +293,9 @@ public class PlanningModule{
 
 
                     mCurrQueryNum ++;
-                    //Run JSONfetcher for the second startLine (get station list)
+                    //Run JSONfetcher get every other line
                     Log.d(MainActivity.TAG, "Fetching second station list");
-                    new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY,
-                            "LineCode", mEndingStation.lines.get(0));
+                    new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY);
                 }
                 break;
         }
@@ -257,7 +304,7 @@ public class PlanningModule{
 
     private int getLinesIntersection(ArrayList<StationInfo> line1, ArrayList<StationInfo> line2, int startIndex){
         Log.d(MainActivity.TAG, "Finding intersection station...");
-        for(int i = startIndex; i < mStartingLines.get(0).size(); i++)
+        for(int i = startIndex; i < line1.size(); i++)
             if(line2.contains(line1.get(i)))
                 return i;
 
@@ -381,6 +428,30 @@ public class PlanningModule{
         for(StationInfo info : temp)
             Log.d(MainActivity.TAG, "Added, name: " + info.name + ", lat: " + info.latitude + ", lon: " + info.longitude + ", code: " + info.code
             + ", altCode1: " + info.altCode1 + ", altCode2: " + info.altCode2);
+        return temp;
+    }
+
+    private Map<String, ArrayList<StationInfo>> parseAllStations(String jsonResult){
+        Map<String, ArrayList<StationInfo>> temp = new HashMap<String, ArrayList<StationInfo>>();
+        try {
+            JSONObject topObject = new JSONObject(jsonResult);
+            JSONArray stationsList = topObject.getJSONArray("Stations");
+            String currLine;
+
+            for(int i = 0; i < stationsList.length(); i++){
+                JSONObject station = stationsList.getJSONObject(i);
+                currLine = station.getString("LineCode1");
+
+                if(!temp.containsKey(currLine))
+                    temp.put(currLine, new ArrayList<StationInfo>());
+
+                temp.get(currLine).add(new StationInfo(station.getString("Name"), station.getDouble("Lat"), station.getDouble("Lon"), station.getString("Code"),
+                        station.getString("StationTogether1"), station.getString("StationTogether2")));
+                Log.d(MainActivity.TAG, "Hashmap: " + currLine + ", " + station.getString("Name"));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         return temp;
     }
 

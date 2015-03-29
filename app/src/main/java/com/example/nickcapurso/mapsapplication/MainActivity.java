@@ -75,6 +75,7 @@ public class MainActivity extends Activity implements LocationListener{
         }
     }
 
+    //TODO if network error or address not found, reset boolean vars
     private Handler mHandler = new Handler(){
         @Override
         public void handleMessage(Message message){
