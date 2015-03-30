@@ -32,6 +32,7 @@ public class JSONFetcher extends AsyncTask<String, Void, String>{
     @Override
     protected void onPreExecute() {
         mTimer = new NetworkTimeout(mClientHandler);
+        mTimer.start();
     }
 
     @Override

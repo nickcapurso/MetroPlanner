@@ -77,7 +77,7 @@ public class PlanningModule{
 
         switch(mState){
             case STATE_GET_ENTRANCES:
-                mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
+                updateProgress(1);
                 if(mCurrQueryNum == 0) {
                     mStartingStation = parseStationEntrances(jsonResult);
                 }else {
@@ -85,7 +85,7 @@ public class PlanningModule{
                 }
                 break;
             case STATE_GET_STATION_INFO:
-                mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
+                updateProgress(1);
                 if(mCurrQueryNum == 0){
                     mStartingStation = parseStationInfo(jsonResult);
                 }else{
@@ -94,10 +94,10 @@ public class PlanningModule{
                 break;
             case STATE_GET_ALT_LINES:
                 if(mCurrQueryNum == 0) {
-                    mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
+                    updateProgress(1);
                     mStartingStation.lines = parseAltLines(mStartingStation.lines, jsonResult);
                 }else{
-                    mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
+                    updateProgress(1);
                     mEndingStation.lines = parseAltLines(mEndingStation.lines, jsonResult);
                 }
                 break;
@@ -111,7 +111,7 @@ public class PlanningModule{
                     //Check for  common lines
                     ArrayList<String> commonLines = getCommonLines(mStartingStation, mEndingStation);
                     if(commonLines.size() != 0){
-                        mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
+                        updateProgress(1);
                         mState = STATE_FINISHED;
 
                         for(String s : commonLines)
@@ -133,8 +133,7 @@ public class PlanningModule{
                     mPaths.add(firstPath);
 
                     //TODO next, consider "new lines" while iterating through the station list and going "up" or "down" the line (station count)
-
-                    mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
+                    updateProgress(1);
                     mState = STATE_FINISHED;
                 }
                 break;
@@ -249,7 +248,7 @@ public class PlanningModule{
                         new JSONFetcher(mHandler).execute(API_URLS.STATION_INFO, "api_key", API_URLS.WMATA_API_KEY,
                                 "StationCode", mEndingStation.altCode1);
                     }else{
-                        mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 2));
+                        updateProgress(2);
                         mCurrQueryNum = 0;
                         mState = STATE_GET_STATION_LIST;
 
@@ -267,7 +266,7 @@ public class PlanningModule{
                         new JSONFetcher(mHandler).execute(API_URLS.STATION_INFO, "api_key", API_URLS.WMATA_API_KEY,
                                 "StationCode", mEndingStation.altCode1);
                     }else{
-                        mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, 1));
+                        updateProgress(1);
                         mCurrQueryNum = 0;
                         mState = STATE_GET_STATION_LIST;
 
@@ -286,12 +285,9 @@ public class PlanningModule{
                 break;
             case STATE_GET_STATION_LIST:
                 if(mCurrQueryNum == 0){
-
-
                     mCurrQueryNum ++;
                     //Run JSONfetcher get every other line
                     Log.d(MainActivity.TAG, "Fetching list for line: " + lines[mCurrQueryNum-1]);
-                    //TODO change to iterate over each item in the lines string array, where the index is mCurrQueryNum-1
                     new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY, "LineCode", lines[mCurrQueryNum-1]);
                 }else if(mCurrQueryNum < lines.length){
                     mCurrQueryNum ++;
@@ -456,6 +452,10 @@ public class PlanningModule{
         return temp;
     }
 
+    private void updateProgress(int amount){
+        mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, amount));
+    }
+
     private Handler mHandler = new Handler(){
         @Override
         public void handleMessage(Message message){
@@ -470,6 +470,4 @@ public class PlanningModule{
             }
         }
     };
-
-    //TODO add advanceProgressDialog()
 }

@@ -18,6 +18,7 @@ public class NetworkTimeout extends CountDownTimer {
 
     public NetworkTimeout(Handler clientHandler){
         super(DEFAULT_PERIOD, ONE_SECOND_MILLIS);
+        mClientHandler = clientHandler;
     }
 
     @Override

@@ -11,7 +11,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -30,15 +29,19 @@ public class MainActivity extends Activity implements LocationListener{
     private ProgressDialog mDialog;
     private AddressInfo mStartingAddr, mEndingAddr = null;
     private String mEndingAddrString;
-    private CountDownTimer mTimer;
+    private NetworkTimeout mTimer;
 
-    private boolean usingPlanTripDialog, mGettingEndingAddr;
+    private boolean mUsingPlanTripDialog, mGettingEndingAddr, mGettingLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+
+        for(String s : mLocationManager.getAllProviders()){
+            Log.d(TAG, "Provider: " + s);
+        }
     }
 
     public void onClick(View v){
@@ -89,17 +92,21 @@ public class MainActivity extends Activity implements LocationListener{
                     }
 
                     AddressPicker addressPicker;
-                    if(!usingPlanTripDialog)
+                    if(!mUsingPlanTripDialog)
                         addressPicker = new AddressPicker(MainActivity.this, this);
                     else
                         addressPicker = new AddressPicker(MainActivity.this, this, !mGettingEndingAddr? "Choose Starting Address" : "Choose Ending Address");
                     addressPicker.show((String) message.obj);
                     break;
                 case HandlerCodes.ADDRESS_CHOSEN:
-                    if(!usingPlanTripDialog) {
+                    if(!mUsingPlanTripDialog) {
                         mStartingAddr = (AddressInfo)message.obj;
                         mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Obtaining Location Fix", true);
                         mLocationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, MainActivity.this, null);
+                        mLocationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, MainActivity.this, null);
+                        mGettingLocation = true;
+                        mTimer = new NetworkTimeout(mHandler);
+                        mTimer.start();
                     }else{
                         if(!mGettingEndingAddr) {
                             mStartingAddr = (AddressInfo)message.obj;
@@ -119,8 +126,16 @@ public class MainActivity extends Activity implements LocationListener{
                 case HandlerCodes.ADDRESS_PICKER_CANCELLED:
                     mGettingEndingAddr = false;
                     break;
+                case HandlerCodes.ADDRESS_PICKER_ERR:
+                    mGettingEndingAddr = false;
+                    break;
                 case HandlerCodes.TIMEOUT:
-                    Toast.makeText(MainActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
+                    String toastMsg = mGettingLocation ? "Unable to get location fix." : "Network error: please make sure you have networking services enabled.";
+                    Toast.makeText(MainActivity.this, toastMsg, Toast.LENGTH_LONG).show();
+                    if(mDialog.isShowing())
+                        mDialog.cancel();
+                    mGettingLocation = false;
+                    mLocationManager.removeUpdates(MainActivity.this);
                     break;
             }
         }
@@ -128,7 +143,7 @@ public class MainActivity extends Activity implements LocationListener{
 
 
     private void showPlanTripDialog(){
-        usingPlanTripDialog = true;
+        mUsingPlanTripDialog = true;
 
         final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
@@ -144,21 +159,16 @@ public class MainActivity extends Activity implements LocationListener{
         dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
-                mGettingEndingAddr = usingPlanTripDialog = false;
+                mGettingEndingAddr = mUsingPlanTripDialog = false;
                 dialog.cancel();
             }
         });
 
         dialogBuilder.setPositiveButton("Go!", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int id) {
-                //mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Finding starting address...", true);
-                //mEndingAddrString = etTripEnd.getText().toString();
-                //new JSONFetcher(mHandler).execute(API_URLS.GEOCODING, "address", etTripStart.getText().toString());
-            }
+            public void onClick(DialogInterface dialog, int id) { }
         });
 
-//        dialogBuilder.show();
 
         final AlertDialog planTripDialog = dialogBuilder.create();
         planTripDialog.show();
@@ -176,7 +186,10 @@ public class MainActivity extends Activity implements LocationListener{
 
     @Override
     public void onLocationChanged(Location location) {
+        mTimer.cancel();
         mDialog.cancel();
+        mLocationManager.removeUpdates(MainActivity.this);
+        mGettingLocation = false;
         Log.d(TAG, "Obtained location - lat: " + location.getLatitude() + ", lng: " + location.getLongitude());
         Intent startMaps = new Intent(this, MapsActivity.class);
         startMaps.putExtra("startingAddr", mStartingAddr);
