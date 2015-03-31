@@ -32,7 +32,7 @@ public class IncidentsActivity extends Activity {
     public void onResume(){
         super.onResume();
         mMainLayout.removeAllViews();
-        mDialog = ProgressDialog.show(this, "Please Wait...", "Finding address...", true);
+        mDialog = ProgressDialog.show(this, "Please Wait...", "Fetching incidents...", true);
         new JSONFetcher(mHandler).execute(API_URLS.RAIL_INCIDENTS, "api_key", API_URLS.WMATA_API_KEY);
     }
 
@@ -46,6 +46,7 @@ public class IncidentsActivity extends Activity {
             incidentsList = jsonParser.getJSONArray("Incidents");
         } catch (JSONException e) {
             Log.d(MainActivity.TAG, "Error parsing JSON");e.printStackTrace();
+            Toast.makeText(IncidentsActivity.this, "Error fetching incidents list.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -86,6 +87,8 @@ public class IncidentsActivity extends Activity {
                     break;
                 case HandlerCodes.TIMEOUT:
                     Toast.makeText(IncidentsActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
+                    if(mDialog.isShowing())
+                        mDialog.cancel();
                     break;
             }
         }
