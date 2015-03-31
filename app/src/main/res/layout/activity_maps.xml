@@ -125,7 +125,7 @@
                     android:layout_weight="1"
                     android:src="@android:drawable/arrow_up_float"
                     android:layout_gravity="center"
-                    android:background="@drawable/white_button"/>
+                    android:background="@drawable/white_button_no_back"/>
 
                 <ImageButton
                     android:id="@+id/btnSearch2"
@@ -134,7 +134,7 @@
                     android:layout_weight="1"
                     android:src="@android:drawable/arrow_down_float"
                     android:layout_gravity="center"
-                    android:background="@drawable/white_button"/>
+                    android:background="@drawable/white_button_no_back"/>
             </LinearLayout>
         </LinearLayout>
 

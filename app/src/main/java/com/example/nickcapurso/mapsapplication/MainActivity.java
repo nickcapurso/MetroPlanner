@@ -137,6 +137,12 @@ public class MainActivity extends Activity implements LocationListener{
                     mGettingLocation = false;
                     mLocationManager.removeUpdates(MainActivity.this);
                     break;
+                case HandlerCodes.JSON_FETCH_ERR:
+                    Toast.makeText(MainActivity.this, "Error receiving data from server", Toast.LENGTH_LONG).show();
+                    mGettingEndingAddr = false;
+                    if(mDialog.isShowing())
+                        mDialog.cancel();
+                    break;
             }
         }
     };

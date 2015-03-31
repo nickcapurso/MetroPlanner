@@ -52,7 +52,7 @@ public class IncidentsActivity extends Activity {
 
         Log.d(MainActivity.TAG, "Number of incidents: " + incidentsList.length());
         if(incidentsList.length() == 0){
-            mMainLayout.addView(new IncidentView(this,"No incident to report",""));
+            mMainLayout.addView(new IncidentView(this,"No incidents to report",""));
             mMainLayout.addView(new ShadowView(this));
         }else{
             for(int i = 0; i < incidentsList.length(); i++){
@@ -87,6 +87,11 @@ public class IncidentsActivity extends Activity {
                     break;
                 case HandlerCodes.TIMEOUT:
                     Toast.makeText(IncidentsActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
+                    if(mDialog.isShowing())
+                        mDialog.cancel();
+                    break;
+                case HandlerCodes.JSON_FETCH_ERR:
+                    Toast.makeText(IncidentsActivity.this, "Error receiving data from WMATA", Toast.LENGTH_LONG).show();
                     if(mDialog.isShowing())
                         mDialog.cancel();
                     break;

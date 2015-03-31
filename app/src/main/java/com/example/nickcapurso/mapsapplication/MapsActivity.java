@@ -204,10 +204,6 @@ public class MapsActivity extends FragmentActivity {
             switch(message.what){
                 case HandlerCodes.UPDATE_PROGRESS:
                     mDialog.incrementProgressBy((Integer)message.obj);
-//                    if(mDialog.getProgress() == 6) {
-//                        mRoutePlanned = true;
-//                        mDialog.cancel();
-//                    }
                     break;
                 case HandlerCodes.START_PLANNING_MODULE:
                     mPlanningModule.start();
@@ -223,6 +219,7 @@ public class MapsActivity extends FragmentActivity {
                     Toast.makeText(MapsActivity.this, (String)message.obj, Toast.LENGTH_LONG).show();
                     break;
                 case HandlerCodes.TIMEOUT:
+                    mDialog.cancel();
                     Toast.makeText(MapsActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
                     break;
             }
