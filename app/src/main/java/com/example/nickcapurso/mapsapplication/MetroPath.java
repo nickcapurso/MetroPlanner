@@ -1,6 +1,8 @@
 package com.example.nickcapurso.mapsapplication;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by cheng on 3/27/15.
@@ -8,8 +10,10 @@ import java.util.ArrayList;
 public class MetroPath {
     public ArrayList<StationInfo> firstLeg, secondLeg, thirdLeg;
     public ArrayList<String> firstLegSharedLines, secondLegSharedLines, thirdLegSharedLines;
+    public Map<String, String> lineTowards = new HashMap<String, String>();
     public String startLine, endLine;
     public boolean sameLine;
+    public int startIndex, endIndex;
 
 
     public MetroPath(){

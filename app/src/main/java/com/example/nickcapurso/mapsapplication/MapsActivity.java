@@ -79,6 +79,11 @@ public class MapsActivity extends FragmentActivity {
                             .width(LINE_WIDTH)
                             .color(getColor(path.startLine)));
                 }
+
+                Log.d(MainActivity.TAG, "Start at " + path.firstLeg.get(path.startIndex).name +
+                        " and take the " + path.startLine +
+                        " line towards " + path.lineTowards.get(path.startLine) +
+                    " to " + path.firstLeg.get(path.endIndex).name);
                 /*
 
                 mCenterLatitude += path.startStation.latitude + path.endStation.latitude;
@@ -117,6 +122,18 @@ public class MapsActivity extends FragmentActivity {
                                 .color(getColor(shorterColor)));
                     }
                 }
+
+                int intersection = 0;
+                if(path.startIndex == 0)
+                    intersection = path.firstLeg.size()-1;
+                Log.d(MainActivity.TAG, "Start at " + path.firstLeg.get(path.startIndex).name +
+                        " and take the " + path.startLine +
+                        " line towards " + path.lineTowards.get(path.startLine) +
+                        " to " + path.firstLeg.get(intersection).name +
+                        ". Transfer to the " + path.endLine +
+                        " towards " + path.lineTowards.get(path.endLine) +
+                        " and end at " + path.secondLeg.get(path.endIndex).name);
+
             }
         }
 
