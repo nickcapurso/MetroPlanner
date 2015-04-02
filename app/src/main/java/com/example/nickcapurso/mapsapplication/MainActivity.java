@@ -100,7 +100,7 @@ public class MainActivity extends Activity implements LocationListener{
                     break;
                 case HandlerCodes.ADDRESS_CHOSEN:
                     if(!mUsingPlanTripDialog) {
-                        mStartingAddr = (AddressInfo)message.obj;
+                        mEndingAddr = (AddressInfo)message.obj;
                         mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Obtaining Location Fix", true);
                         mLocationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, MainActivity.this, null);
                         mLocationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, MainActivity.this, null);
@@ -198,8 +198,8 @@ public class MainActivity extends Activity implements LocationListener{
         mGettingLocation = false;
         Log.d(TAG, "Obtained location - lat: " + location.getLatitude() + ", lng: " + location.getLongitude());
         Intent startMaps = new Intent(this, MapsActivity.class);
-        startMaps.putExtra("startingAddr", mStartingAddr);
-        startMaps.putExtra("endingAddr", new AddressInfo("null", location.getLatitude(), location.getLongitude()));
+        startMaps.putExtra("endingAddr", mEndingAddr);
+        startMaps.putExtra("startingAddr", new AddressInfo("null", location.getLatitude(), location.getLongitude()));
         startActivity(startMaps);
     }
 

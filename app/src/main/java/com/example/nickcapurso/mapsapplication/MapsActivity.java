@@ -8,8 +8,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -23,7 +27,7 @@ public class MapsActivity extends FragmentActivity {
     private static final int LINE_WIDTH = 7;
 
     private boolean mRoutePlanned;
-    private double mCenterLatitude, mCenterLongitude;
+    private int mCurrPath = 0;
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private Intent mIntent;
@@ -32,6 +36,9 @@ public class MapsActivity extends FragmentActivity {
     private PlanningModule mPlanningModule;
     private ProgressDialog mDialog;
     private ArrayList<MetroPath> mPaths;
+
+    private ImageView ivFirstLegColor, ivSecondLegColor;
+    private TextView tvTextLine1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +49,10 @@ public class MapsActivity extends FragmentActivity {
         mStartingAddr = (AddressInfo) getIntent().getParcelableExtra("startingAddr");
         mEndingAddr = (AddressInfo) getIntent().getParcelableExtra("endingAddr");
         mPaths = new ArrayList<MetroPath>();
-        mCenterLatitude = mCenterLongitude = 0;
+
+        ivFirstLegColor = (ImageView)findViewById(R.id.ivFirstLegColor);
+        ivSecondLegColor= (ImageView)findViewById(R.id.ivSecondLegColor);
+        tvTextLine1 = (TextView)findViewById(R.id.tvTextLine1);
     }
 
     @Override
@@ -57,6 +67,19 @@ public class MapsActivity extends FragmentActivity {
         }
     }
 
+    public void onClick(View v){
+        switch(v.getId()){
+            case R.id.btnPrevPath:
+                --mCurrPath;
+                if(mCurrPath < 0) mCurrPath = mPaths.size()-1;
+                drawPath(mPaths.get(mCurrPath));
+                break;
+            case R.id.btnNextPath:
+                drawPath(mPaths.get(++mCurrPath % mPaths.size()));
+                break;
+        }
+    }
+
     private void showProgessDialog(){
         mDialog = new ProgressDialog(this);
         mDialog.setCancelable(false);
@@ -68,80 +91,140 @@ public class MapsActivity extends FragmentActivity {
         mDialog.show();
     }
 
-    private void drawPaths(){
-        for(MetroPath path : mPaths){
-            if(path.sameLine){
-                ArrayList<StationInfo> firstLeg = path.firstLeg;
-                for(int i = 0; i < firstLeg.size()-1; i++) {
+    private void onPlanningModuleDone(){
+        drawPath(mPaths.get(0));
+    }
+
+    private void drawPath(MetroPath path){
+        double numCoordinates, centerLatitude, centerLongitude;
+        String desc;
+        numCoordinates = centerLatitude = centerLongitude = 0;
+
+        mMap.clear();
+        if(path.sameLine){
+            ArrayList<StationInfo> firstLeg = path.firstLeg;
+            for(int i = 0; i < firstLeg.size(); i++) {
+                if(i < firstLeg.size()-1)
                     mMap.addPolyline(new PolylineOptions()
                             .add(new LatLng(firstLeg.get(i).latitude, firstLeg.get(i).longitude),
                                     new LatLng(firstLeg.get(i + 1).latitude, firstLeg.get(i + 1).longitude))
                             .width(LINE_WIDTH)
                             .color(getColor(path.startLine)));
-                }
 
-                Log.d(MainActivity.TAG, "Start at " + path.firstLeg.get(path.startIndex).name +
-                        " and take the " + path.startLine +
-                        " line towards " + path.lineTowards.get(path.startLine) +
+                numCoordinates++;
+                centerLatitude += firstLeg.get(i).latitude;
+                centerLongitude += firstLeg.get(i).longitude;
+            }
+
+            desc = "Start: " + path.firstLeg.get(path.startIndex).name
+            + "\nTake: " + getLine(path.startLine) + " line towards " + path.lineTowards.get(path.startLine)
+            + "\nEnd: " + path.firstLeg.get(path.endIndex).name;
+            Log.d(MainActivity.TAG, "Start at " + path.firstLeg.get(path.startIndex).name +
+                    " and take the " + path.startLine +
+                    " line towards " + path.lineTowards.get(path.startLine) +
                     " to " + path.firstLeg.get(path.endIndex).name);
-                /*
+        }else{
+            ArrayList<StationInfo> drawLongerSection;
+            ArrayList<StationInfo> drawShorterSection;
+            String longerLine, shorterLine;
 
-                mCenterLatitude += path.startStation.latitude + path.endStation.latitude;
-                mCenterLongitude += path.startStation.longitude + path.endStation.longitude;
-                */
+            Log.d(MainActivity.TAG, "First color: " + path.startLine + " second: " + path.endLine);
+            if(path.firstLeg.size() >= path.secondLeg.size()){
+                drawLongerSection = path.firstLeg;
+                drawShorterSection = path.secondLeg;
+                longerLine = path.startLine;
+                shorterLine = path.endLine;
             }else{
-                ArrayList<StationInfo> drawLongerSection;
-                ArrayList<StationInfo> drawShorterSection;
-                String longerColor, shorterColor;
+                drawLongerSection = path.secondLeg;
+                drawShorterSection = path.firstLeg;
+                longerLine = path.endLine;
+                shorterLine = path.startLine;
+            }
 
-                Log.d(MainActivity.TAG, "First color: " + path.startLine + " second: " + path.endLine);
-                if(path.firstLeg.size() >= path.secondLeg.size()){
-                    drawLongerSection = path.firstLeg;
-                    drawShorterSection = path.secondLeg;
-                    longerColor = path.startLine;
-                    shorterColor = path.endLine;
-                }else{
-                    drawLongerSection = path.secondLeg;
-                    drawShorterSection = path.firstLeg;
-                    longerColor = path.endLine;
-                    shorterColor = path.startLine;
-                }
+            for(int i = 0; i < drawLongerSection.size(); i++){
+                numCoordinates++;
+                centerLatitude += drawLongerSection.get(i).latitude;
+                centerLongitude += drawLongerSection.get(i).longitude;
 
-                for(int i = 0; i < drawLongerSection.size()-1; i++){
+                if(i < drawLongerSection.size()-1)
                     mMap.addPolyline(new PolylineOptions()
                             .add(new LatLng(drawLongerSection.get(i).latitude, drawLongerSection.get(i).longitude),
-                                    new LatLng(drawLongerSection.get(i+1).latitude, drawLongerSection.get(i+1).longitude))
+                                    new LatLng(drawLongerSection.get(i + 1).latitude, drawLongerSection.get(i + 1).longitude))
                             .width(LINE_WIDTH)
-                            .color(getColor(longerColor)));
+                            .color(getColor(longerLine)));
 
-                    if(i < drawShorterSection.size()-1){
-                        mMap.addPolyline(new PolylineOptions()
-                                .add(new LatLng(drawShorterSection.get(i).latitude, drawShorterSection.get(i).longitude),
-                                        new LatLng(drawShorterSection.get(i+1).latitude, drawShorterSection.get(i+1).longitude))
-                                .width(LINE_WIDTH)
-                                .color(getColor(shorterColor)));
-                    }
+                if(i < drawShorterSection.size()){
+                    numCoordinates++;
+                    centerLatitude += drawShorterSection.get(i).latitude;
+                    centerLongitude += drawShorterSection.get(i).longitude;
+
+                    if(i < drawShorterSection.size()-1)
+                    mMap.addPolyline(new PolylineOptions()
+                            .add(new LatLng(drawShorterSection.get(i).latitude, drawShorterSection.get(i).longitude),
+                                    new LatLng(drawShorterSection.get(i+1).latitude, drawShorterSection.get(i+1).longitude))
+                            .width(LINE_WIDTH)
+                            .color(getColor(shorterLine)));
                 }
-
-                int intersection = 0;
-                if(path.startIndex == 0)
-                    intersection = path.firstLeg.size()-1;
-                Log.d(MainActivity.TAG, "Start at " + path.firstLeg.get(path.startIndex).name +
-                        " and take the " + path.startLine +
-                        " line towards " + path.lineTowards.get(path.startLine) +
-                        " to " + path.firstLeg.get(intersection).name +
-                        ". Transfer to the " + path.endLine +
-                        " towards " + path.lineTowards.get(path.endLine) +
-                        " and end at " + path.secondLeg.get(path.endIndex).name);
-
             }
+
+            int intersection = 0;
+            if(path.startIndex == 0)
+                intersection = path.firstLeg.size()-1;
+
+            desc = "Start: " + path.firstLeg.get(path.startIndex).name
+            + "\nTake: " + getLine(path.startLine) + " line towards " + path.lineTowards.get(path.startLine)
+            + "\nTransfer: " + path.firstLeg.get(intersection).name
+            + "\nTake: " + getLine(path.endLine) + " line towards " + path.lineTowards.get(path.endLine)
+            + "\nEnd: " + path.secondLeg.get(path.endIndex).name;
+            Log.d(MainActivity.TAG, "Start at " + path.firstLeg.get(path.startIndex).name +
+                    " and take the " + getLine(path.startLine) +
+                    " line towards " + path.lineTowards.get(path.startLine) +
+                    " to " + path.firstLeg.get(intersection).name +
+                    ". Transfer to the " + getLine(path.endLine) +
+                    " towards " + path.lineTowards.get(path.endLine) +
+                    " and end at " + path.secondLeg.get(path.endIndex).name);
         }
 
-        mCenterLatitude = mCenterLatitude / (2*mPaths.size());
-        mCenterLongitude = mCenterLongitude / (2*mPaths.size());
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(mPaths.get(0).startStation.latitude, mPaths.get(0).startStation.longitude)));
- //       mMap.moveCamera(CameraUpdateFactory.zoomTo(12));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(centerLatitude/numCoordinates, centerLongitude/numCoordinates)));
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(11));
+        tvTextLine1.setText(desc);
+
+        if(path.sameLine){
+            ivFirstLegColor.setBackgroundColor(getColor(path.startLine));
+            ivSecondLegColor.setVisibility(View.INVISIBLE);
+        }else{
+            ivSecondLegColor.setVisibility(View.VISIBLE);
+            ivFirstLegColor.setBackgroundColor(getColor(path.startLine));
+            ivSecondLegColor.setBackgroundColor(getColor(path.endLine));
+        }
     }
+
+    public String getLine(String code){
+        String line = "";
+
+        switch(code){
+            case "RD":
+                line = "Red";
+                break;
+            case "BL":
+                line = "Blue";
+                break;
+            case "OR":
+                line = "Orange";
+                break;
+            case "SV":
+                line = "Silver";
+                break;
+            case "YL":
+                line = "Yellow";
+                break;
+            case "GR":
+                line = "Green";
+                break;
+        }
+        return line;
+    }
+
 
     public int getColor(String line){
         int color;
@@ -228,7 +311,7 @@ public class MapsActivity extends FragmentActivity {
                 case HandlerCodes.PLANNING_MODULE_DONE:
                     mRoutePlanned = true;
                     mPaths = (ArrayList<MetroPath>)message.obj;
-                    drawPaths();
+                    onPlanningModuleDone();
                     mDialog.cancel();
                     break;
                 case HandlerCodes.PLANNING_MODULE_ERR:

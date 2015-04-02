@@ -14,58 +14,45 @@
         android:layout_alignParentTop="true"
         android:orientation="vertical">
 
-        <LinearLayout
+        <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="90dp"
                 android:orientation="horizontal">
 
                 <ImageView
                     android:id="@+id/ivFirstLegColor"
                     android:layout_width="10dp"
-                    android:layout_height="match_parent"/>
+                    android:layout_height="match_parent"
+                    android:layout_alignParentLeft="true"/>
 
                 <ImageView
                     android:id="@+id/ivSecondLegColor"
                     android:layout_width="10dp"
                     android:layout_height="match_parent"
-                    android:background="@color/background_floating_material_dark"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+                    android:layout_toRightOf="@id/ivFirstLegColor"/>
 
                 <TextView
                     android:id="@+id/tvTextLine1"
                     android:layout_width="match_parent"
+                    android:paddingLeft="@dimen/padding_small"
                     android:layout_height="wrap_content"
-                    android:text="Start at Foggy Bottom Station, take the ORANGE, SILVER, OR BLUE train"/>
-
-                <TextView
-                    android:id="@+id/tvTextLine2"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Transfer at Metro Center Station to the RED train"/>
-
-                <TextView
-                    android:id="@+id/tvTextLine3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="End at Union Station"/>
-            </LinearLayout>
+                    android:layout_toRightOf="@id/ivSecondLegColor"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_marginLeft="2dp"
                 android:layout_marginRight="2dp"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:layout_alignParentRight="true">
 
                 <ImageButton
                     android:id="@+id/btnPrevPath"
                     android:onClick="onClick"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
+                    android:layout_marginLeft="@dimen/padding_small"
+                    android:layout_marginRight="@dimen/padding_small"
                     android:layout_weight="1"
                     android:src="@android:drawable/arrow_up_float"
                     android:layout_gravity="center"
@@ -74,6 +61,8 @@
                 <ImageButton
                     android:id="@+id/btnNextPath"
                     android:onClick="onClick"
+                    android:layout_marginLeft="@dimen/padding_small"
+                    android:layout_marginRight="@dimen/padding_small"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
@@ -81,22 +70,20 @@
                     android:layout_gravity="center"
                     android:background="@drawable/white_button_no_back"/>
             </LinearLayout>
-        </LinearLayout>
-
-
+        </RelativeLayout>
 
         <View
             android:layout_width="fill_parent"
             android:layout_height="2dp"
-            android:background="@color/shadow" />
+            android:background="@color/shadow"            />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="100dp"
         android:orientation="vertical"
         android:layout_below="@id/layout_path_list"
-        android:id="@+id/linearLayout">
+        android:layout_alignParentBottom="true">
 
         <fragment
             android:layout_width="match_parent"
