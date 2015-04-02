@@ -23,8 +23,8 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity {
-    //198-97-83
-    private static final int COLOR_BLUE = Color.rgb(198,97,83);
+    //1-85-147
+    private static final int COLOR_BLUE = Color.rgb(4,135,236);
     //190-19-55
     private static final int COLOR_RED = Color.rgb(190,19,55);
     //218-135-7
@@ -38,9 +38,12 @@ public class MapsActivity extends FragmentActivity {
 
     private static final int ONE_SECOND = 1000;
     private static final int LINE_WIDTH = 7;
+    private static final int OUTLINE_WIDTH = 4;
 
     private boolean mRoutePlanned;
     private int mCurrPath = 0;
+
+    private static final String OUTLINE_COLOR = "BLK";
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private Intent mIntent;
@@ -117,13 +120,19 @@ public class MapsActivity extends FragmentActivity {
         if(path.sameLine){
             ArrayList<StationInfo> firstLeg = path.firstLeg;
             for(int i = 0; i < firstLeg.size(); i++) {
-                if(i < firstLeg.size()-1)
+                if(i < firstLeg.size()-1) {
+                    mMap.addPolyline(new PolylineOptions()
+                            .add(new LatLng(firstLeg.get(i).latitude, firstLeg.get(i).longitude),
+                                    new LatLng(firstLeg.get(i + 1).latitude, firstLeg.get(i + 1).longitude))
+                            .width(LINE_WIDTH + OUTLINE_WIDTH)
+                            .color(getColor(OUTLINE_COLOR)));
+
                     mMap.addPolyline(new PolylineOptions()
                             .add(new LatLng(firstLeg.get(i).latitude, firstLeg.get(i).longitude),
                                     new LatLng(firstLeg.get(i + 1).latitude, firstLeg.get(i + 1).longitude))
                             .width(LINE_WIDTH)
                             .color(getColor(path.startLine)));
-
+                }
                 numCoordinates++;
                 centerLatitude += firstLeg.get(i).latitude;
                 centerLongitude += firstLeg.get(i).longitude;
@@ -159,24 +168,38 @@ public class MapsActivity extends FragmentActivity {
                 centerLatitude += drawLongerSection.get(i).latitude;
                 centerLongitude += drawLongerSection.get(i).longitude;
 
-                if(i < drawLongerSection.size()-1)
+                if(i < drawLongerSection.size()-1) {
+                    mMap.addPolyline(new PolylineOptions()
+                            .add(new LatLng(drawLongerSection.get(i).latitude, drawLongerSection.get(i).longitude),
+                                    new LatLng(drawLongerSection.get(i + 1).latitude, drawLongerSection.get(i + 1).longitude))
+                            .width(LINE_WIDTH + OUTLINE_WIDTH)
+                            .color(getColor(OUTLINE_COLOR)));
+
                     mMap.addPolyline(new PolylineOptions()
                             .add(new LatLng(drawLongerSection.get(i).latitude, drawLongerSection.get(i).longitude),
                                     new LatLng(drawLongerSection.get(i + 1).latitude, drawLongerSection.get(i + 1).longitude))
                             .width(LINE_WIDTH)
                             .color(getColor(longerLine)));
+                }
 
                 if(i < drawShorterSection.size()){
                     numCoordinates++;
                     centerLatitude += drawShorterSection.get(i).latitude;
                     centerLongitude += drawShorterSection.get(i).longitude;
 
-                    if(i < drawShorterSection.size()-1)
-                    mMap.addPolyline(new PolylineOptions()
-                            .add(new LatLng(drawShorterSection.get(i).latitude, drawShorterSection.get(i).longitude),
-                                    new LatLng(drawShorterSection.get(i+1).latitude, drawShorterSection.get(i+1).longitude))
-                            .width(LINE_WIDTH)
-                            .color(getColor(shorterLine)));
+                    if(i < drawShorterSection.size()-1) {
+                        mMap.addPolyline(new PolylineOptions()
+                                .add(new LatLng(drawShorterSection.get(i).latitude, drawShorterSection.get(i).longitude),
+                                        new LatLng(drawShorterSection.get(i + 1).latitude, drawShorterSection.get(i + 1).longitude))
+                                .width(LINE_WIDTH + OUTLINE_WIDTH)
+                                .color(getColor(OUTLINE_COLOR)));
+
+                        mMap.addPolyline(new PolylineOptions()
+                                .add(new LatLng(drawShorterSection.get(i).latitude, drawShorterSection.get(i).longitude),
+                                        new LatLng(drawShorterSection.get(i + 1).latitude, drawShorterSection.get(i + 1).longitude))
+                                .width(LINE_WIDTH)
+                                .color(getColor(shorterLine)));
+                    }
                 }
             }
 
