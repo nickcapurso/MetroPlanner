@@ -24,6 +24,7 @@ import android.widget.Toast;
  *
  */
 public class MainActivity extends Activity implements LocationListener{
+
     public static final String TAG = "MetroPlanner";
     private LocationManager mLocationManager;
     private ProgressDialog mDialog;

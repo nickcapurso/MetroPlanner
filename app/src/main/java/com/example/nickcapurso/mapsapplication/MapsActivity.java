@@ -23,6 +23,19 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity {
+    //198-97-83
+    private static final int COLOR_BLUE = Color.rgb(198,97,83);
+    //190-19-55
+    private static final int COLOR_RED = Color.rgb(190,19,55);
+    //218-135-7
+    private static final int COLOR_ORANGE = Color.rgb(218,135,7);
+    //245-212-21
+    private static final int COLOR_YELLOW = Color.rgb(245,212,21);
+    //0-176-80
+    private static final int COLOR_GREEN = Color.rgb(0,176,80);
+    //162-164-161
+    private static final int COLOR_SILVER = Color.rgb(162,164,161);
+
     private static final int ONE_SECOND = 1000;
     private static final int LINE_WIDTH = 7;
 
@@ -231,22 +244,22 @@ public class MapsActivity extends FragmentActivity {
         //RD, BL, YL, OR, GR, or SV
         switch(line){
             case "RD":
-                color = Color.RED;
+                color = COLOR_RED;
                 break;
             case "BL":
-                color = Color.BLUE;
+                color = COLOR_BLUE;
                 break;
             case "YL":
-                color = Color.YELLOW;
+                color = COLOR_YELLOW;
                 break;
             case "OR":
-                color = Color.rgb(255,153,0);
+                color = COLOR_ORANGE;
                 break;
             case "GR":
-                color = Color.GREEN;
+                color = COLOR_GREEN;
                 break;
             case "SV":
-                color = Color.GRAY;
+                color = COLOR_SILVER;
                 break;
             default:
                 color = Color.BLACK;
