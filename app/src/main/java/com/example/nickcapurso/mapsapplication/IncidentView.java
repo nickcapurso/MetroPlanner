@@ -28,6 +28,7 @@ public class IncidentView extends LinearLayout {
     }
 
     private void createViews(String linesAffected, String incident){
+        String affected = linesAffected;
         LayoutParams parentParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         parentParams.setMargins(0,PADDING_SMALL,0,0);
         setOrientation(LinearLayout.HORIZONTAL);
@@ -35,6 +36,13 @@ public class IncidentView extends LinearLayout {
         setBackgroundColor(mContext.getResources().getColor(R.color.white));
         setLayoutParams(parentParams);
 
+        if(!incident.equals("")){
+            String[] lines = linesAffected.split(":");
+            affected = "Lines affected: ";
+            for(String s : lines)
+                affected += getLine(s) + ", ";
+            affected = affected.substring(0, affected.length()-2);
+        }
 
         mIVIcon = new ImageView(mContext);
         LayoutParams imageViewParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
@@ -49,7 +57,7 @@ public class IncidentView extends LinearLayout {
 
         mTVLines = new TextView(mContext);
         LayoutParams linesParams = new LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
-        mTVLines.setText(linesAffected);
+        mTVLines.setText(affected);
         mTVLines.setLayoutParams(linesParams);
 
         mIncidentContainer = new ScrollView(mContext);
@@ -68,4 +76,30 @@ public class IncidentView extends LinearLayout {
         addView(mMessageContainer);
     }
 
+
+    public String getLine(String code){
+        String line = "";
+
+        switch(code){
+            case "RD":
+                line = "Red";
+                break;
+            case "BL":
+                line = "Blue";
+                break;
+            case "OR":
+                line = "Orange";
+                break;
+            case "SV":
+                line = "Silver";
+                break;
+            case "YL":
+                line = "Yellow";
+                break;
+            case "GR":
+                line = "Green";
+                break;
+        }
+        return line;
+    }
 }

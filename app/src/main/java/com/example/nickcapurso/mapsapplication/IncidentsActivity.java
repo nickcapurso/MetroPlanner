@@ -52,6 +52,7 @@ public class IncidentsActivity extends Activity {
 
         Log.d(MainActivity.TAG, "Number of incidents: " + incidentsList.length());
         if(incidentsList.length() == 0){
+            Log.d(MainActivity.TAG, "No incidents");
             mMainLayout.addView(new IncidentView(this,"No incidents to report",""));
             mMainLayout.addView(new ShadowView(this));
         }else{
