@@ -96,10 +96,10 @@ public class PlanningModule{
                 break;
             case STATE_GET_ALT_LINES:
                 if(mCurrQueryNum == 0) {
-                    updateProgress(1);
+                    //updateProgress(1);
                     mStartingStation.lines = parseAltLines(mStartingStation.lines, jsonResult);
                 }else{
-                    updateProgress(1);
+                    //updateProgress(1);
                     mEndingStation.lines = parseAltLines(mEndingStation.lines, jsonResult);
                 }
                 break;
@@ -117,7 +117,7 @@ public class PlanningModule{
                     ArrayList<String> commonLines = getCommonLines(mStartingStation, mEndingStation);
 
                     if(commonLines.size() != 0){
-                        updateProgress(1);
+                        updateProgress(2);
                         mState = STATE_FINISHED;
 
                         for(String s : commonLines)
@@ -166,7 +166,7 @@ public class PlanningModule{
 
 
                     //TODO next, consider "new lines" while iterating through the station list and going "up" or "down" the line (station count)
-                    updateProgress(1);
+                    updateProgress(2);
                     mState = STATE_FINISHED;
                 }
                 break;
@@ -174,7 +174,7 @@ public class PlanningModule{
         if(mState != STATE_FINISHED)
             mHandler.sendMessageDelayed(msg, API_DELAY);
         else
-            mClientHandler.sendMessageDelayed(mClientHandler.obtainMessage(HandlerCodes.PLANNING_MODULE_DONE, mPaths), API_DELAY);
+            mClientHandler.sendMessageDelayed(mClientHandler.obtainMessage(HandlerCodes.PLANNING_MODULE_DONE, mPaths), 2*API_DELAY);
     }
 
     private MetroPath getPath(ArrayList<StationInfo> line1, String line1Color, StationInfo startStation, ArrayList<StationInfo> line2, String line2Color, StationInfo endStation){
@@ -342,7 +342,7 @@ public class PlanningModule{
                         new JSONFetcher(mHandler).execute(API_URLS.STATION_INFO, "api_key", API_URLS.WMATA_API_KEY,
                                 "StationCode", mEndingStation.altCode1);
                     }else{
-                        updateProgress(2);
+                        //updateProgress(2);
                         mCurrQueryNum = 0;
                         mState = STATE_GET_STATION_LIST;
 
@@ -360,7 +360,7 @@ public class PlanningModule{
                         new JSONFetcher(mHandler).execute(API_URLS.STATION_INFO, "api_key", API_URLS.WMATA_API_KEY,
                                 "StationCode", mEndingStation.altCode1);
                     }else{
-                        updateProgress(1);
+                        //updateProgress(1);
                         mCurrQueryNum = 0;
                         mState = STATE_GET_STATION_LIST;
 

@@ -91,7 +91,8 @@ public class MapsActivity extends FragmentActivity {
                 drawPath(mPaths.get(mCurrPath));
                 break;
             case R.id.btnNextPath:
-                drawPath(mPaths.get(++mCurrPath % mPaths.size()));
+                mCurrPath = ++mCurrPath % mPaths.size();
+                drawPath(mPaths.get(mCurrPath));
                 break;
         }
     }
@@ -100,7 +101,7 @@ public class MapsActivity extends FragmentActivity {
         mDialog = new ProgressDialog(this);
         mDialog.setCancelable(false);
         mDialog.setIndeterminate(false);
-        mDialog.setMax(10);
+        mDialog.setMax(6);
         mDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         mDialog.setTitle("Please Wait...");
         mDialog.setMessage("Planning Metro Route...");
@@ -137,6 +138,9 @@ public class MapsActivity extends FragmentActivity {
                 centerLatitude += firstLeg.get(i).latitude;
                 centerLongitude += firstLeg.get(i).longitude;
             }
+
+            mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(path.startIndex).latitude, path.firstLeg.get(path.startIndex).longitude)).title("Start: " + path.firstLeg.get(path.startIndex).name));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(path.endIndex).latitude, path.firstLeg.get(path.endIndex).longitude)).title("End: " + path.firstLeg.get(path.endIndex).name));
 
             desc = "Start: " + path.firstLeg.get(path.startIndex).name
             + "\nTake: " + getLine(path.startLine) + " line towards " + path.lineTowards.get(path.startLine)
@@ -207,6 +211,9 @@ public class MapsActivity extends FragmentActivity {
             if(path.startIndex == 0)
                 intersection = path.firstLeg.size()-1;
 
+            mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(path.startIndex).latitude, path.firstLeg.get(path.startIndex).longitude)).title("Start: " + path.firstLeg.get(path.startIndex).name ));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(intersection).latitude, path.firstLeg.get(intersection).longitude)).title("Transfer: " + path.firstLeg.get(intersection).name));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(path.secondLeg.get(path.endIndex).latitude, path.secondLeg.get(path.endIndex).longitude)).title("End: " + path.secondLeg.get(path.endIndex).name));
             desc = "Start: " + path.firstLeg.get(path.startIndex).name
             + "\nTake: " + getLine(path.startLine) + " line towards " + path.lineTowards.get(path.startLine)
             + "\nTransfer: " + path.firstLeg.get(intersection).name
