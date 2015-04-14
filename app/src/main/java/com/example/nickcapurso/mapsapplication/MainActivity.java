@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -20,6 +21,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import java.util.Calendar;
 
 /**
  * Created by nickcapurso on 3/2/15.
@@ -211,10 +214,12 @@ public class MainActivity extends Activity implements LocationListener{
     public void onProviderDisabled(String provider) { }
 
     class DatabaseAccess extends AsyncTask<String,Void,String>{
+        HistoryDbHelper dbHelper;
+        SQLiteDatabase db;
 
         //TODO create database open helper
         public DatabaseAccess(){
-
+            dbHelper = new HistoryDbHelper(MainActivity.this);
         }
 
 
@@ -225,8 +230,15 @@ public class MainActivity extends Activity implements LocationListener{
 
         @Override
         protected String doInBackground(String... params) {
-            //TODO write values to database
-            ContentValues toWrite ;
+            Calendar cal = Calendar.getInstance();
+            String date = cal.get(Calendar.MONTH) + "/" + cal.get(Calendar.DAY_OF_MONTH) + "/" + cal.get(Calendar.YEAR);
+
+            db = dbHelper.getWritableDatabase();
+
+            ContentValues toWrite = new ContentValues();
+            toWrite.put(HistoryDbInfo.HistoryEntry.START_STATION, mStartingAddr.address);
+            toWrite.put(HistoryDbInfo.HistoryEntry.START_STATION, mEndingAddr.address);
+            toWrite.put(HistoryDbInfo.HistoryEntry.DATE, date);
 
             return null;
         }

@@ -3,14 +3,14 @@ package com.example.nickcapurso.mapsapplication;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import static com.example.nickcapurso.mapsapplication.TripHistoryDbInfo.*;
-import static com.example.nickcapurso.mapsapplication.TripHistoryDbInfo.TripHistoryEntry.*;
+import static com.example.nickcapurso.mapsapplication.HistoryDbInfo.*;
+import static com.example.nickcapurso.mapsapplication.HistoryDbInfo.HistoryEntry.*;
 /**
  * Created by nickcapurso on 4/14/15.
  */
-public class TripHistoryDbHelper extends SQLiteOpenHelper {
+public class HistoryDbHelper extends SQLiteOpenHelper {
 
-    public TripHistoryDbHelper(Context context){
+    public HistoryDbHelper(Context context){
         super(context, TABLE_NAME, null,TABLE_VERSION);
     }
 

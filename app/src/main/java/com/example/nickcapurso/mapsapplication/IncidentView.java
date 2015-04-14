@@ -21,7 +21,7 @@ public class IncidentView extends LinearLayout {
 
     public IncidentView(Context context, String linesAffected, String incident) {
         super(context);
-        this.mContext = context;
+        mContext = context;
         PADDING_SMALL = (int) context.getResources().getDimension(R.dimen.padding_small);
 
         createViews(linesAffected, incident);
