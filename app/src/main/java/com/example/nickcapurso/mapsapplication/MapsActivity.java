@@ -1,6 +1,8 @@
 package com.example.nickcapurso.mapsapplication;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -40,7 +42,7 @@ public class MapsActivity extends FragmentActivity {
     private static final int LINE_WIDTH = 7;
     private static final int OUTLINE_WIDTH = 4;
 
-    private boolean mRoutePlanned;
+    private boolean mRoutePlanned, mIsPlanning;
     private int mCurrPath = 0;
 
     private static final String OUTLINE_COLOR = "BLK";
@@ -75,11 +77,11 @@ public class MapsActivity extends FragmentActivity {
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
-        if(!mRoutePlanned){
+        if(!mRoutePlanned && !mIsPlanning){
+            mIsPlanning = true;
             mPlanningModule = new PlanningModule(mStartingAddr, mEndingAddr, mHandler);
             showProgessDialog();
             mHandler.sendMessageDelayed(mHandler.obtainMessage(HandlerCodes.START_PLANNING_MODULE), ONE_SECOND);
-
         }
     }
 
@@ -353,19 +355,46 @@ public class MapsActivity extends FragmentActivity {
                     break;
                 case HandlerCodes.PLANNING_MODULE_DONE:
                     mRoutePlanned = true;
+                    mIsPlanning = false;
                     mPaths = (ArrayList<MetroPath>)message.obj;
                     onPlanningModuleDone();
                     mDialog.cancel();
                     break;
                 case HandlerCodes.PLANNING_MODULE_ERR:
                     mDialog.cancel();
+                    mIsPlanning = false;
                     Toast.makeText(MapsActivity.this, (String)message.obj, Toast.LENGTH_LONG).show();
+                    showRetryDialog();
                     break;
                 case HandlerCodes.TIMEOUT:
                     mDialog.cancel();
+                    mIsPlanning = false;
                     Toast.makeText(MapsActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
+                    showRetryDialog();
                     break;
             }
         }
     };
+
+    private void showRetryDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Error Finding Metro Path");
+
+        builder.setPositiveButton("Retry", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                mIsPlanning = true;
+                mPlanningModule = new PlanningModule(mStartingAddr, mEndingAddr, mHandler);
+                showProgessDialog();
+                mHandler.sendMessageDelayed(mHandler.obtainMessage(HandlerCodes.START_PLANNING_MODULE), ONE_SECOND);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.cancel();
+                MapsActivity.this.finish();
+            }
+        });
+
+        builder.create().show();
+    }
 }
