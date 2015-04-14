@@ -3,6 +3,7 @@ package com.example.nickcapurso.mapsapplication;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,6 +11,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -117,10 +119,7 @@ public class MainActivity extends Activity implements LocationListener{
                         }else{
                             mEndingAddr = (AddressInfo)message.obj;
                             mGettingEndingAddr = false;
-                            Intent startMaps = new Intent(MainActivity.this, MapsActivity.class);
-                            startMaps.putExtra("startingAddr", mStartingAddr);
-                            startMaps.putExtra("endingAddr", mEndingAddr);
-                            startActivity(startMaps);
+                            new DatabaseAccess().execute();
                         }
                     }
                     break;
@@ -198,10 +197,8 @@ public class MainActivity extends Activity implements LocationListener{
         mLocationManager.removeUpdates(MainActivity.this);
         mGettingLocation = false;
         Log.d(TAG, "Obtained location - lat: " + location.getLatitude() + ", lng: " + location.getLongitude());
-        Intent startMaps = new Intent(this, MapsActivity.class);
-        startMaps.putExtra("endingAddr", mEndingAddr);
-        startMaps.putExtra("startingAddr", new AddressInfo("null", location.getLatitude(), location.getLongitude()));
-        startActivity(startMaps);
+        mStartingAddr = new AddressInfo("null", location.getLatitude(), location.getLongitude());
+        new DatabaseAccess().execute();
     }
 
     @Override
@@ -212,4 +209,35 @@ public class MainActivity extends Activity implements LocationListener{
 
     @Override
     public void onProviderDisabled(String provider) { }
+
+    class DatabaseAccess extends AsyncTask<String,Void,String>{
+
+        //TODO create database open helper
+        public DatabaseAccess(){
+
+        }
+
+
+        @Override
+        protected void onPreExecute(){
+            mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Saving to trip history...", true);
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            //TODO write values to database
+            ContentValues toWrite ;
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            mDialog.cancel();
+            Intent startMaps = new Intent(MainActivity.this, MapsActivity.class);
+            startMaps.putExtra("startingAddr", mStartingAddr);
+            startMaps.putExtra("endingAddr", mEndingAddr);
+            startActivity(startMaps);
+        }
+    }
 }
