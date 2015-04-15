@@ -1,10 +1,10 @@
 package com.example.nickcapurso.mapsapplication;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -16,7 +16,7 @@ import org.json.JSONObject;
 /**
  * Created by nickcapurso on 3/2/15.
  */
-public class IncidentsActivity extends Activity {
+public class IncidentsActivity extends ActionBarActivity {
     private LinearLayout mMainLayout;
     private ProgressDialog mDialog;
 
@@ -53,7 +53,7 @@ public class IncidentsActivity extends Activity {
         Log.d(MainActivity.TAG, "Number of incidents: " + incidentsList.length());
         if(incidentsList.length() == 0){
             Log.d(MainActivity.TAG, "No incidents");
-            mMainLayout.addView(new IncidentView(this,"No incidents to report",""));
+            mMainLayout.addView(new IncidentView(this, "No incidents to report"));
             mMainLayout.addView(new ShadowView(this));
         }else{
             for(int i = 0; i < incidentsList.length(); i++){
@@ -64,7 +64,7 @@ public class IncidentsActivity extends Activity {
                     Log.d(MainActivity.TAG, "Error parsing JSON");e.printStackTrace();
                     return;
                 }
-                mMainLayout.addView(new IncidentView(this, linesAffected, description));
+                mMainLayout.addView(new IncidentView(this, description));
                 mMainLayout.addView(new ShadowView(this));
             }
         }

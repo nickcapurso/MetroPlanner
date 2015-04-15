@@ -21,4 +21,9 @@ public class HistoryDbHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
     }
+
+    public void recreateTable(SQLiteDatabase db){
+        db.execSQL(SQL_DELETE_TABLE);
+        db.execSQL(SQL_CREATE_NEW_TABLE);
+    }
 }

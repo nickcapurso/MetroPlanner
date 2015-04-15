@@ -15,4 +15,5 @@ public class HandlerCodes {
     public static final byte PLANNING_MODULE_DONE = 0x18;
     public static final byte PLANNING_MODULE_ERR = 0x19;
     public static final byte TIMEOUT = 0x20;
+    public static final byte HISTORY_ENTRY_CHOSEN = 0x21;
 }

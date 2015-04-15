@@ -1,6 +1,8 @@
 package com.example.nickcapurso.mapsapplication;
 
 import android.content.Context;
+import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -10,14 +12,18 @@ import android.widget.TextView;
  */
 public class HistoryView extends LinearLayout{
     private static int PADDING_SMALL;
+    private int id;
 
     private Context mContext;
+    private Handler mClientHandler;
     private TextView mTVStartingStation, mTVEndingStation, mTVDate;
 
-    public HistoryView(Context context, String startingStation, String endingStation, String date){
+    public HistoryView(Context context, String startingStation, String endingStation, String date, String id, Handler handler){
         super(context);
         mContext = context;
         PADDING_SMALL = (int) context.getResources().getDimension(R.dimen.padding_small);
+        mClientHandler = handler;
+        this.id = Integer.parseInt(id);
         createViews(startingStation, endingStation, date);
     }
 
@@ -55,7 +61,8 @@ public class HistoryView extends LinearLayout{
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Log.d(MainActivity.TAG, "onClick: Entry #"+id);
+                mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.HISTORY_ENTRY_CHOSEN, id));
             }
         });
     }

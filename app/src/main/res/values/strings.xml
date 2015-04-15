@@ -10,4 +10,8 @@
     <string name="metro_map">View Metro Map</string>
     <string name="trip_start">Trip Start</string>
     <string name="trip_end">Trip End</string>
+    <string name="clear_history">Clear History</string>
+    <string name="resave_history">Save Recalled\nHistory Items</string>
+
+    <string name="metro_planner">Metro Planner</string>
 </resources>

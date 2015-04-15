@@ -1,6 +1,5 @@
 package com.example.nickcapurso.mapsapplication;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
@@ -16,6 +15,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,7 +30,7 @@ import static com.example.nickcapurso.mapsapplication.HistoryDbInfo.HistoryEntry
  * Created by nickcapurso on 3/2/15.
  *
  */
-public class MainActivity extends Activity implements LocationListener{
+public class MainActivity extends ActionBarActivity implements LocationListener{
 
     public static final String TAG = "MetroPlanner";
     private LocationManager mLocationManager;
@@ -87,7 +87,6 @@ public class MainActivity extends Activity implements LocationListener{
         }
     }
 
-    //TODO if network error or address not found, reset boolean vars
     private Handler mHandler = new Handler(){
         @Override
         public void handleMessage(Message message){
@@ -203,7 +202,7 @@ public class MainActivity extends Activity implements LocationListener{
         mLocationManager.removeUpdates(MainActivity.this);
         mGettingLocation = false;
         Log.d(TAG, "Obtained location - lat: " + location.getLatitude() + ", lng: " + location.getLongitude());
-        mStartingAddr = new AddressInfo("null", location.getLatitude(), location.getLongitude());
+        mStartingAddr = new AddressInfo(HistoryActivity.CURRENT_LOCATION, location.getLatitude(), location.getLongitude());
         new DatabaseAccess().execute();
     }
 
@@ -234,13 +233,16 @@ public class MainActivity extends Activity implements LocationListener{
         @Override
         protected String doInBackground(String... params) {
             Calendar cal = Calendar.getInstance();
-            String date = cal.get(Calendar.MONTH) + "/" + cal.get(Calendar.DAY_OF_MONTH) + "/" + cal.get(Calendar.YEAR);
+            String date = (cal.get(Calendar.MONTH)+1) + "/" + cal.get(Calendar.DAY_OF_MONTH) + "/" + cal.get(Calendar.YEAR);
 
-            //TODO add lat/long of start/end stations to the database (need to recreate db with these columns)
             db = dbHelper.getWritableDatabase();
             ContentValues toWrite = new ContentValues();
             toWrite.put(HistoryEntry.START_STATION, mStartingAddr.address);
+            toWrite.put(HistoryEntry.START_LAT, mStartingAddr.latitude);
+            toWrite.put(HistoryEntry.START_LON, mStartingAddr.longitude);
             toWrite.put(HistoryEntry.END_STATION, mEndingAddr.address);
+            toWrite.put(HistoryEntry.END_LAT, mEndingAddr.latitude);
+            toWrite.put(HistoryEntry.END_LON, mEndingAddr.longitude);
             toWrite.put(HistoryEntry.DATE, date);
             db.insert(HistoryEntry.TABLE_NAME, null, toWrite);
             return null;
