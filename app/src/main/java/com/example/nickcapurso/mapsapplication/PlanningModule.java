@@ -17,6 +17,8 @@ import java.util.Map;
  */
 //TODO thoughts - for the future, maybe compute all the pairwise shortest paths at app first run. Recompute on incidents? How to know which shortest paths need to be
 //TODO recomputed? Need to recompute the whole map, but virtually this would happen at every app start up (assuming one incident per day or something)
+
+//TODO need to fill out all the catch blocks of the try-catch statements - should send PLANNING_MODULE_ERR message
 public class PlanningModule{
     private static final byte STATE_GET_ENTRANCES = 0;
     private static final byte STATE_GET_STATION_INFO = 1;
@@ -78,6 +80,7 @@ public class PlanningModule{
         }
 
         switch(mState){
+            //TODO need to stop if no entrances found
             case STATE_GET_ENTRANCES:
                 updateProgress(1);
                 if(mCurrQueryNum == 0) {
@@ -127,6 +130,7 @@ public class PlanningModule{
 
 
 
+                    //TODO station may have perpendicular lines, where the first line may not be shared with the others
                     MetroPath firstPath = getPath(mAllLines.get(mStartingStation.lines.get(0)), mStartingStation.lines.get(0), mStartingStation,
                             mAllLines.get(mEndingStation.lines.get(0)), mEndingStation.lines.get(0), mEndingStation);
 

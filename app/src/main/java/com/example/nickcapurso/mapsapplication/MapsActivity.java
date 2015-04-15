@@ -39,7 +39,7 @@ public class MapsActivity extends FragmentActivity {
     private static final int COLOR_SILVER = Color.rgb(162,164,161);
 
     private static final int ONE_SECOND = 1000;
-    private static final int LINE_WIDTH = 7;
+    private static final int LINE_WIDTH = 8;
     private static final int OUTLINE_WIDTH = 4;
 
     private boolean mRoutePlanned, mIsPlanning;
