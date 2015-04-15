@@ -2,11 +2,13 @@ package com.example.nickcapurso.mapsapplication;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 
+import static com.example.nickcapurso.mapsapplication.HistoryDbInfo.HistoryEntry;
 /**
  * Created by cheng on 4/14/15.
  */
@@ -19,13 +21,23 @@ public class HistoryActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-        mMainLayout = (LinearLayout)findViewById(R.id.incidentLayout);
+        mMainLayout = (LinearLayout)findViewById(R.id.historyLayout);
+
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        new DatabaseAccess().execute();
     }
 
 
     class DatabaseAccess extends AsyncTask<String,Void,String> {
-        HistoryDbHelper dbHelper;
-        SQLiteDatabase db;
+        private final String[] projection = {HistoryEntry._ID, HistoryEntry.START_STATION,HistoryEntry.END_STATION,HistoryEntry.DATE};
+        private final String sortOrder = HistoryEntry._ID + " DESC";
+
+        private HistoryDbHelper dbHelper;
+        private SQLiteDatabase db;
 
         public DatabaseAccess(){
             dbHelper = new HistoryDbHelper(HistoryActivity.this);
@@ -40,13 +52,34 @@ public class HistoryActivity extends Activity {
         @Override
         protected String doInBackground(String... params) {
             db = dbHelper.getReadableDatabase();
+
+
             return null;
         }
 
         @Override
         protected void onPostExecute(String result) {
-            mDialog.cancel();
+            Cursor cursor;
+            String startingStation, endingStation, date;
 
+            cursor = db.query(HistoryEntry.TABLE_NAME, projection, null, null, null, null, sortOrder);
+            cursor.moveToFirst();
+
+            startingStation= "Start: " + cursor.getString(cursor.getColumnIndexOrThrow(HistoryEntry.START_STATION));
+            endingStation= "End: " + cursor.getString(cursor.getColumnIndexOrThrow(HistoryEntry.END_STATION));
+            date= "Date: " + cursor.getString(cursor.getColumnIndexOrThrow(HistoryEntry.DATE));
+            mMainLayout.addView(new HistoryView(HistoryActivity.this, startingStation, endingStation, date));
+            mMainLayout.addView(new ShadowView(HistoryActivity.this));
+
+            while(cursor.moveToNext()){
+                startingStation= "Start: " + cursor.getString(cursor.getColumnIndexOrThrow(HistoryEntry.START_STATION));
+                endingStation= "End: " + cursor.getString(cursor.getColumnIndexOrThrow(HistoryEntry.END_STATION));
+                date= "Date: " + cursor.getString(cursor.getColumnIndexOrThrow(HistoryEntry.DATE));
+                mMainLayout.addView(new HistoryView(HistoryActivity.this, startingStation, endingStation, date));
+                mMainLayout.addView(new ShadowView(HistoryActivity.this));
+            }
+
+            mDialog.cancel();
         }
     }
 }

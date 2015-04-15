@@ -1,6 +1,7 @@
 package com.example.nickcapurso.mapsapplication;
 
 import android.content.Context;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -25,20 +26,22 @@ public class HistoryView extends LinearLayout{
         parentParams.setMargins(0,PADDING_SMALL,0,0);
         setOrientation(LinearLayout.VERTICAL);
         setPadding(PADDING_SMALL,PADDING_SMALL,PADDING_SMALL,PADDING_SMALL);
-        setBackgroundColor(mContext.getResources().getColor(R.color.white));
+       // setBackgroundColor(mContext.getResources().getColor(R.color.white));
+        setClickable(true);
+        setBackground(mContext.getResources().getDrawable(R.drawable.white_button));
         setLayoutParams(parentParams);
 
         mTVStartingStation = new TextView(mContext);
         LayoutParams linesParams = new LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
         mTVStartingStation.setText(startingStation);
         mTVStartingStation.setLayoutParams(linesParams);
-        mTVStartingStation.setPadding(PADDING_SMALL,0,0,0);
+        mTVStartingStation.setPadding(2*PADDING_SMALL,PADDING_SMALL,PADDING_SMALL,0);
 
         mTVEndingStation = new TextView(mContext);
         LayoutParams linesParams2 = new LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
         mTVEndingStation.setText(endingStation);
         mTVEndingStation.setLayoutParams(linesParams2);
-        mTVEndingStation.setPadding(PADDING_SMALL,0,0,0);
+        mTVEndingStation.setPadding(2*PADDING_SMALL,PADDING_SMALL,0,0);
 
         mTVDate = new TextView(mContext);
         LayoutParams linesParams3 = new LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
@@ -48,5 +51,12 @@ public class HistoryView extends LinearLayout{
         addView(mTVDate);
         addView(mTVStartingStation);
         addView(mTVEndingStation);
+
+        setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
     }
 }

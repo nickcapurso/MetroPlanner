@@ -24,6 +24,8 @@ import android.widget.Toast;
 
 import java.util.Calendar;
 
+import static com.example.nickcapurso.mapsapplication.HistoryDbInfo.HistoryEntry;
+
 /**
  * Created by nickcapurso on 3/2/15.
  *
@@ -72,6 +74,7 @@ public class MainActivity extends Activity implements LocationListener{
                 break;
             case R.id.btnTripHistory:
                 Log.d(TAG, "btnTripHistory");
+                startActivity(new Intent(MainActivity.this, HistoryActivity.class));
                 break;
             case R.id.btnDelays:
                 Log.d(TAG, "btnDelays");
@@ -217,7 +220,6 @@ public class MainActivity extends Activity implements LocationListener{
         HistoryDbHelper dbHelper;
         SQLiteDatabase db;
 
-        //TODO create database open helper
         public DatabaseAccess(){
             dbHelper = new HistoryDbHelper(MainActivity.this);
         }
@@ -226,6 +228,7 @@ public class MainActivity extends Activity implements LocationListener{
         @Override
         protected void onPreExecute(){
             mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Saving to trip history...", true);
+            Log.d(TAG, "Begin writing to db");
         }
 
         @Override
@@ -233,13 +236,13 @@ public class MainActivity extends Activity implements LocationListener{
             Calendar cal = Calendar.getInstance();
             String date = cal.get(Calendar.MONTH) + "/" + cal.get(Calendar.DAY_OF_MONTH) + "/" + cal.get(Calendar.YEAR);
 
+            //TODO add lat/long of start/end stations to the database (need to recreate db with these columns)
             db = dbHelper.getWritableDatabase();
-
             ContentValues toWrite = new ContentValues();
-            toWrite.put(HistoryDbInfo.HistoryEntry.START_STATION, mStartingAddr.address);
-            toWrite.put(HistoryDbInfo.HistoryEntry.START_STATION, mEndingAddr.address);
-            toWrite.put(HistoryDbInfo.HistoryEntry.DATE, date);
-
+            toWrite.put(HistoryEntry.START_STATION, mStartingAddr.address);
+            toWrite.put(HistoryEntry.END_STATION, mEndingAddr.address);
+            toWrite.put(HistoryEntry.DATE, date);
+            db.insert(HistoryEntry.TABLE_NAME, null, toWrite);
             return null;
         }
 
