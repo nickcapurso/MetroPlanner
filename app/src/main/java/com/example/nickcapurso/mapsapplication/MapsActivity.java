@@ -364,22 +364,22 @@ public class MapsActivity extends FragmentActivity {
                     mDialog.cancel();
                     mIsPlanning = false;
                     Toast.makeText(MapsActivity.this, (String)message.obj, Toast.LENGTH_LONG).show();
-                    showRetryDialog();
+                    showRetryDialog((String)message.obj);
                     break;
                 case HandlerCodes.TIMEOUT:
                     mDialog.cancel();
                     mIsPlanning = false;
-                    Toast.makeText(MapsActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
-                    showRetryDialog();
+                    Toast.makeText(MapsActivity.this, "Network timeout: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
+                    showRetryDialog("Network timeout: please make sure you have networking services enabled.");
                     break;
             }
         }
     };
 
-    private void showRetryDialog(){
+    private void showRetryDialog(String errMsg){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Error Finding Metro Path");
-
+        builder.setMessage(errMsg);
         builder.setPositiveButton("Retry", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 mIsPlanning = true;

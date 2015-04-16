@@ -39,7 +39,7 @@ public class IncidentsActivity extends ActionBarActivity {
     private void incidentsFetched(String incidentsJSON){
         JSONObject jsonParser;
         JSONArray incidentsList;
-        String linesAffected = "", description = "";
+        String description = "";
 
         try {
             jsonParser = new JSONObject(incidentsJSON);
@@ -58,10 +58,11 @@ public class IncidentsActivity extends ActionBarActivity {
         }else{
             for(int i = 0; i < incidentsList.length(); i++){
                 try {
-                    linesAffected = incidentsList.getJSONObject(i).getString("LinesAffected");
                     description = incidentsList.getJSONObject(i).getString("Description");
                 } catch (JSONException e) {
-                    Log.d(MainActivity.TAG, "Error parsing JSON");e.printStackTrace();
+                    Log.d(MainActivity.TAG, "Error parsing JSON");
+                    mHandler.sendMessage(mHandler.obtainMessage(HandlerCodes.JSON_FETCH_ERR));
+                    e.printStackTrace();
                     return;
                 }
                 mMainLayout.addView(new IncidentView(this, description));

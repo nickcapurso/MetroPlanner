@@ -25,6 +25,7 @@ public class PlanningModule{
     private static final byte STATE_GET_ALT_LINES = 2;
     private static final byte STATE_GET_STATION_LIST = 3;
     private static final byte STATE_FINISHED = 4;
+    private static final byte STATE_ERR = 6;
     private static final int HALF_MILE_IN_METERS = 805;
     private static final int ONE_SECOND = 1000;
     private static final int API_DELAY = ONE_SECOND / 2;
@@ -38,6 +39,7 @@ public class PlanningModule{
     //private ArrayList<ArrayList<StationInfo>> mStartingLines, mEndingLines;
     private ArrayList<MetroPath> mPaths;
     private final Handler mClientHandler;
+    private String mErrMsg;
 
     public PlanningModule(AddressInfo startingAddr, AddressInfo endingAddr, Handler client){
         mStartingAddr = startingAddr;
@@ -88,6 +90,9 @@ public class PlanningModule{
                 }else {
                     mEndingStation = parseStationEntrances(jsonResult);
                 }
+
+                if(mState == STATE_ERR)
+                    mErrMsg = "No metro station entrances within a half mile of " + ((mCurrQueryNum == 0)?  "starting address" : "ending address");
                 break;
             case STATE_GET_STATION_INFO:
                 updateProgress(1);
@@ -96,6 +101,9 @@ public class PlanningModule{
                 }else{
                     mEndingStation = parseStationInfo(jsonResult);
                 }
+
+                if(mState == STATE_ERR)
+                    mErrMsg = "Error receiving information for metro stations near " + ((mCurrQueryNum == 0)?  "starting address" : "ending address");
                 break;
             case STATE_GET_ALT_LINES:
                 if(mCurrQueryNum == 0) {
@@ -105,6 +113,9 @@ public class PlanningModule{
                     //updateProgress(1);
                     mEndingStation.lines = parseAltLines(mEndingStation.lines, jsonResult);
                 }
+
+                if(mState == STATE_ERR)
+                    mErrMsg = "Error receiving metro lines information";
                 break;
             case STATE_GET_STATION_LIST:
                 if(mCurrQueryNum < lines.length-1){
@@ -115,6 +126,11 @@ public class PlanningModule{
                     //Parse final station list
                     if(!mAllLines.containsKey(lines[mCurrQueryNum]))
                         mAllLines.put(lines[mCurrQueryNum], parseStationList(jsonResult));
+
+                    if(mState == STATE_ERR) {
+                        mErrMsg = "Error receiving metro lines information";
+                        break;
+                    }
 
 
                     ArrayList<String> commonLines = getCommonLines(mStartingStation, mEndingStation);
@@ -127,8 +143,6 @@ public class PlanningModule{
                             mPaths.add(getPath(mAllLines.get(s), s, mStartingStation, null, s, mEndingStation));
                         break;
                     }
-
-
 
                     //TODO station may have perpendicular lines, where the first line may not be shared with the others
                     MetroPath firstPath = getPath(mAllLines.get(mStartingStation.lines.get(0)), mStartingStation.lines.get(0), mStartingStation,
@@ -165,17 +179,16 @@ public class PlanningModule{
                         }
                     }
 
-                    //addSharedLines(firstPath);
-
-
-
                     //TODO next, consider "new lines" while iterating through the station list and going "up" or "down" the line (station count)
                     updateProgress(2);
                     mState = STATE_FINISHED;
                 }
                 break;
         }
-        if(mState != STATE_FINISHED)
+
+        if(mState == STATE_ERR)
+            mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.PLANNING_MODULE_ERR, mErrMsg));
+        else if(mState != STATE_FINISHED)
             mHandler.sendMessageDelayed(msg, API_DELAY);
         else
             mClientHandler.sendMessageDelayed(mClientHandler.obtainMessage(HandlerCodes.PLANNING_MODULE_DONE, mPaths), 2*API_DELAY);
@@ -247,64 +260,6 @@ public class PlanningModule{
 
 
         return path;
-    }
-
-
-
-    private void addSharedLines(MetroPath path){
-        StationInfo intersection;
-        String currLineColor;
-        ArrayList<StationInfo> currLine;
-        int startIndex, intersectionIndex, endIndex;
-
-        if(path.firstLeg.indexOf(mStartingStation) == 0)
-            intersection = path.firstLeg.get(path.firstLeg.size()-1);
-        else
-            intersection = path.firstLeg.get(0);
-
-
-        Log.d(MainActivity.TAG, "mSS location: " + path.firstLeg.indexOf(mStartingStation));
-        if(mStartingStation.lines.size() > 1) {
-            for (int i = 1; i < mStartingStation.lines.size(); i++) {
-                currLineColor = mStartingStation.lines.get(i);
-                currLine = mAllLines.get(currLineColor);
-                Log.d(MainActivity.TAG, "Curr line " + currLineColor);
-
-                if (currLine.contains(intersection)) {
-                    path.firstLegSharedLines.add(currLineColor);
-                    Log.d(MainActivity.TAG, "First leg shared with: " + currLine);
-
-                    startIndex = currLine.indexOf(mStartingStation);
-                    intersectionIndex = currLine.indexOf(intersection);
-
-                    if (startIndex <= intersectionIndex)
-                        path.lineTowards.put(currLineColor, currLine.get(currLine.size() - 1).name);
-                    else
-                        path.lineTowards.put(currLineColor, currLine.get(0).name);
-                }
-            }
-        }
-
-        if(mEndingStation.lines.size() <= 1)
-            return;
-
-        for(int i = 1; i < mEndingStation.lines.size(); i++){
-            currLineColor = mStartingStation.lines.get(i);
-            currLine =  mAllLines.get(currLineColor);
-
-            if(currLine.contains(intersection)){
-                path.secondLegSharedLines.add(currLineColor);
-                Log.d(MainActivity.TAG, "Second leg shared with: " + currLineColor);
-
-                endIndex = currLine.indexOf(mEndingStation);
-                intersectionIndex = currLine.indexOf(intersection);
-
-                if(intersectionIndex <= endIndex)
-                    path.lineTowards.put(currLineColor, currLine.get(currLine.size()-1).name);
-                else
-                    path.lineTowards.put(currLineColor, currLine.get(0).name);
-            }
-        }
     }
 
     private void continueFetches(){
@@ -439,6 +394,7 @@ public class PlanningModule{
             temp.longitude = firstEntrance.getDouble("Lon");
             temp.code = firstEntrance.getString("StationCode1");
         } catch (JSONException e) {
+            mState = STATE_ERR;
             e.printStackTrace();
         }
         Log.d(MainActivity.TAG, "Found station: " + temp.name + ", lat: " + temp.latitude + ", lng: " + temp.longitude + ", code: " + temp.code);
@@ -468,6 +424,7 @@ public class PlanningModule{
             Log.d(MainActivity.TAG, "Lines now includes: " + debug + "}");
 
         } catch (JSONException e) {
+            mState = STATE_ERR;
             e.printStackTrace();
         }
 
@@ -495,6 +452,7 @@ public class PlanningModule{
             Log.d(MainActivity.TAG, "Alt lines now includes: " + debug + "}");
 
         } catch (JSONException e) {
+            mState = STATE_ERR;
             e.printStackTrace();
         }
         return lines;
@@ -522,6 +480,7 @@ public class PlanningModule{
                     temp.get(i).lines.add(station.getString(("LineCode3")));
             }
         } catch (JSONException e) {
+            mState = STATE_ERR;
             e.printStackTrace();
         }
 
@@ -531,29 +490,6 @@ public class PlanningModule{
         return temp;
     }
 
-    private Map<String, ArrayList<StationInfo>> parseAllStations(String jsonResult){
-        Map<String, ArrayList<StationInfo>> temp = new HashMap<String, ArrayList<StationInfo>>();
-        try {
-            JSONObject topObject = new JSONObject(jsonResult);
-            JSONArray stationsList = topObject.getJSONArray("Stations");
-            String currLine;
-
-            for(int i = 0; i < stationsList.length(); i++){
-                JSONObject station = stationsList.getJSONObject(i);
-                currLine = station.getString("LineCode1");
-
-                if(!temp.containsKey(currLine))
-                    temp.put(currLine, new ArrayList<StationInfo>());
-
-                temp.get(currLine).add(new StationInfo(station.getString("Name"), station.getDouble("Lat"), station.getDouble("Lon"), station.getString("Code"),
-                        station.getString("StationTogether1"), station.getString("StationTogether2")));
-                Log.d(MainActivity.TAG, "Hashmap: " + currLine + ", " + station.getString("Name"));
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return temp;
-    }
 
     private void updateProgress(int amount){
         mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.UPDATE_PROGRESS, amount));
