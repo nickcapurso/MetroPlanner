@@ -82,6 +82,7 @@ public class AddressPicker {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+            mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.JSON_FETCH_ERR));
             showToast("Error performing address lookup");
         }
 

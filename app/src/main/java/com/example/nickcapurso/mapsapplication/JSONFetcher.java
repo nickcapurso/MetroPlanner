@@ -57,20 +57,27 @@ public class JSONFetcher extends AsyncTask<String, Void, String>{
             }
         } catch (ClientProtocolException e) {
             Log.d(MainActivity.TAG, "JSONFetcher - ClientProtocolException " + e.getStackTrace());
+            return "err";
         } catch (IOException e) {
             Log.d(MainActivity.TAG, "JSONFetcher - IOException " + e.getStackTrace());
+            return "err";
         } catch (URISyntaxException e) {
             Log.d(MainActivity.TAG, "JSONFetcher - URISyntaxException " + e.getStackTrace());
+            return "err";
         }
-        return null;
+        return "okay";
     }
 
     @Override
     protected void onPostExecute(String result) {
         mTimer.cancel();
-        Log.d(MainActivity.TAG, "Result: " + result);
-        Message message = mClientHandler.obtainMessage(HandlerCodes.JSON_FETCH_DONE);
-        message.obj = result;
-        mClientHandler.sendMessage(message);
+        if(result.equals("err")){
+            mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.JSON_FETCH_ERR));
+        }else {
+            Log.d(MainActivity.TAG, "Result: " + result);
+            Message message = mClientHandler.obtainMessage(HandlerCodes.JSON_FETCH_DONE);
+            message.obj = result;
+            mClientHandler.sendMessage(message);
+        }
     }
 }

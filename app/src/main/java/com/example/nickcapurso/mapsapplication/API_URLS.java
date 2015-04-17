@@ -17,6 +17,6 @@ public class API_URLS {
     public static final String GEOCODING = "http://maps.google.com/maps/api/geocode/json";
 
     public static final String GOOGLE_API_KEY = "AIzaSyCeeioXvbj7KXqeBGAtyFKiz_2Z9Y5txrQ";
-    //public static final String WMATA_API_KEY = "kfgpmgvfgacx98de9q3xazww"; //demo key
+    //public static final String WMATA_API_DEMO_KEY = "kfgpmgvfgacx98de9q3xazww"; //demo key
     public static final String WMATA_API_KEY = "a5e0c9477546468690990a3c81fa672e";
 }
