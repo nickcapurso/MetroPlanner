@@ -8,7 +8,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 /**
- * Created by nickcapurso on 3/4/15.
+ * Custom view used to display metro incidents
  */
 public class IncidentView extends LinearLayout {
     private static int PADDING_SMALL;
@@ -25,7 +25,12 @@ public class IncidentView extends LinearLayout {
         createViews(incident);
     }
 
+    /**
+     * Called to set up the individual views that comprise a IncidentView
+     * @param incident
+     */
     private void createViews(String incident){
+        //Settings for the overall LinearLayout container.
         LayoutParams parentParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         parentParams.setMargins(0,PADDING_SMALL,0,0);
         setOrientation(LinearLayout.HORIZONTAL);
@@ -34,12 +39,13 @@ public class IncidentView extends LinearLayout {
         setBackgroundColor(mContext.getResources().getColor(R.color.white));
         setLayoutParams(parentParams);
 
-
+        //ImageView to display a "warning" icon
         mIVIcon = new ImageView(mContext);
         LayoutParams imageViewParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         mIVIcon.setImageDrawable(mContext.getResources().getDrawable(android.R.drawable.ic_dialog_alert));
         mIVIcon.setLayoutParams(imageViewParams);
 
+        //TextView to hold the actual metro incident
         mTVIncident = new TextView(mContext);
         LayoutParams incidentParams = new LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
         mTVIncident.setText(incident);
@@ -49,32 +55,5 @@ public class IncidentView extends LinearLayout {
 
         addView(mIVIcon);
         addView(mTVIncident);
-    }
-
-
-    public String getLine(String code){
-        String line = "";
-
-        switch(code){
-            case "RD":
-                line = "Red";
-                break;
-            case "BL":
-                line = "Blue";
-                break;
-            case "OR":
-                line = "Orange";
-                break;
-            case "SV":
-                line = "Silver";
-                break;
-            case "YL":
-                line = "Yellow";
-                break;
-            case "GR":
-                line = "Green";
-                break;
-        }
-        return line;
     }
 }

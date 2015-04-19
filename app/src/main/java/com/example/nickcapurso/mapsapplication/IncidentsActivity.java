@@ -14,10 +14,23 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Created by nickcapurso on 3/2/15.
+ * Activity used to display any metro incidents to the user.
  */
 public class IncidentsActivity extends ActionBarActivity {
+    /**
+     * Set to indicate that incidents have been fetched (and thus, does not need to be
+     * repeated when onResume is called again.
+     */
+    private boolean mFetchComplete;
+
+    /**
+     * The main layout in which to place multiple IncidentViews
+     */
     private LinearLayout mMainLayout;
+
+    /**
+     * Reference to a "loading" dialog
+     */
     private ProgressDialog mDialog;
 
    @Override
@@ -28,14 +41,24 @@ public class IncidentsActivity extends ActionBarActivity {
        mMainLayout = (LinearLayout)findViewById(R.id.incidentLayout);
    }
 
+    /**
+     * The actual query for metro incidents is done during the onResume callback.
+     */
     @Override
     public void onResume(){
         super.onResume();
-        mMainLayout.removeAllViews();
-        mDialog = ProgressDialog.show(this, "Please Wait...", "Fetching incidents...", true);
-        new JSONFetcher(mHandler).execute(API_URLS.RAIL_INCIDENTS, "api_key", API_URLS.WMATA_API_KEY);
+        if(!mFetchComplete) {
+            mMainLayout.removeAllViews();
+            mDialog = ProgressDialog.show(this, "Please Wait...", "Fetching incidents...", true);
+            new JSONFetcher(mHandler).execute(API_URLS.RAIL_INCIDENTS, "api_key", API_URLS.WMATA_API_KEY);
+        }
     }
 
+    /**
+     * Upon return of the network query, create an IncidentView for each incident found (or
+     * display an error message if there was a problem fetching metro incidents).
+     * @param incidentsJSON
+     */
     private void incidentsFetched(String incidentsJSON){
         JSONObject jsonParser;
         JSONArray incidentsList;
@@ -51,11 +74,14 @@ public class IncidentsActivity extends ActionBarActivity {
         }
 
         Log.d(MainActivity.TAG, "Number of incidents: " + incidentsList.length());
+
+        //If there are no incidents, display an IncidentView with a different message
         if(incidentsList.length() == 0){
             Log.d(MainActivity.TAG, "No incidents");
             mMainLayout.addView(new IncidentView(this, "No incidents to report"));
             mMainLayout.addView(new ShadowView(this));
         }else{
+            //For each incident, create a new IncidentView
             for(int i = 0; i < incidentsList.length(); i++){
                 try {
                     description = incidentsList.getJSONObject(i).getString("Description");
@@ -73,6 +99,10 @@ public class IncidentsActivity extends ActionBarActivity {
         mMainLayout.invalidate();
     }
 
+    /**
+     * Receives messages from other entities. In this case, from the JSONFetcher upon the success
+     * or failure of a network query and also from the NetworkTimeout if a timeout occurs.
+     */
     private Handler mHandler = new Handler(){
         @Override
         public void handleMessage(Message message){
@@ -84,7 +114,7 @@ public class IncidentsActivity extends ActionBarActivity {
                         Toast.makeText(IncidentsActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
                         return;
                     }
-
+                    mFetchComplete = true;
                     incidentsFetched((String)message.obj);
                     break;
                 case HandlerCodes.TIMEOUT:

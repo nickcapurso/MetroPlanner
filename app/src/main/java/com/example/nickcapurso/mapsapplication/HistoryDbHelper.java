@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import static com.example.nickcapurso.mapsapplication.HistoryDbInfo.*;
 import static com.example.nickcapurso.mapsapplication.HistoryDbInfo.HistoryEntry.*;
 /**
- * Created by nickcapurso on 4/14/15.
+ * Used to initially create and/or delete the database and its tables
  */
 public class HistoryDbHelper extends SQLiteOpenHelper {
 

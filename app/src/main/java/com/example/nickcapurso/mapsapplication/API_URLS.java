@@ -1,9 +1,9 @@
 package com.example.nickcapurso.mapsapplication;
 
 /**
- * Created by nickcapurso on 3/19/15.
+ * Simply holds all the URLs for the various API calls
  */
-public class API_URLS {
+public final class API_URLS {
     public static final String RAIL_INCIDENTS = "https://api.wmata.com/Incidents.svc/json/Incidents";
     public static final String BUS_INCIDENTS = "https://api.wmata.com/Incidents.svc/json/BusIncidents";
 

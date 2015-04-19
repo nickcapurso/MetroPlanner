@@ -3,7 +3,7 @@ package com.example.nickcapurso.mapsapplication;
 import android.provider.BaseColumns;
 
 /**
- * Created by nickcapurso on 4/14/15.
+ * Constants used to create the database table and entries for the trip history
  */
 public final class HistoryDbInfo {
     public static abstract class HistoryEntry implements BaseColumns {
