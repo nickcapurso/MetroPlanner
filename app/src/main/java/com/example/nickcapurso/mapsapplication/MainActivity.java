@@ -281,7 +281,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener{
         //TODO put back the old code
 
         final AlertDialog planTripDialog = dialogBuilder.create();
-
+        planTripDialog.show();
         planTripDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener((new View.OnClickListener()
         {
             @Override
@@ -292,8 +292,6 @@ public class MainActivity extends ActionBarActivity implements LocationListener{
                 new JSONFetcher(mHandler).execute(API_URLS.GEOCODING, "address", etTripStart.getText().toString());
             }
         }));
-
-        planTripDialog.show();
     }
 
     /**
