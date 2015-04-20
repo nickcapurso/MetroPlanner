@@ -270,14 +270,29 @@ public class MainActivity extends ActionBarActivity implements LocationListener{
         dialogBuilder.setPositiveButton("Go!", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
+                //mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Finding starting address...", true);
+                //mEndingAddrString = etTripEnd.getText().toString();
+                //new JSONFetcher(mHandler).execute(API_URLS.GEOCODING, "address", etTripStart.getText().toString());
+            }
+        });
+
+        
+
+        //TODO put back the old code
+
+        final AlertDialog planTripDialog = dialogBuilder.create();
+
+        planTripDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener((new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
                 mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Finding starting address...", true);
                 mEndingAddrString = etTripEnd.getText().toString();
                 new JSONFetcher(mHandler).execute(API_URLS.GEOCODING, "address", etTripStart.getText().toString());
             }
-        });
+        }));
 
-
-        final AlertDialog planTripDialog = dialogBuilder.create();
         planTripDialog.show();
     }
 
