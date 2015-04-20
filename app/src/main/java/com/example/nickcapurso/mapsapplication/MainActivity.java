@@ -91,7 +91,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener{
 
 
     /**
-     * Sets up location manager instance
+     * Initialize any variables and views
      * @param savedInstanceState Unused - rotations disabled.
      */
     @Override
@@ -265,23 +265,21 @@ public class MainActivity extends ActionBarActivity implements LocationListener{
             }
         });
 
-        //When the Positive Button ("GO!") is pressed, a sequence starts to map the inputted strings
-        //to actual places using the Google Places API
+
+        //Creation of the Positive Button ("Go!") is done by supplying a blank constructor for the onClickListener.
+        //The onClick listener is added later, after the dialog is shown, to get the desired behavior or leaving
+        //the dialog open after the button is pressed.
         dialogBuilder.setPositiveButton("Go!", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int id) {
-                //mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Finding starting address...", true);
-                //mEndingAddrString = etTripEnd.getText().toString();
-                //new JSONFetcher(mHandler).execute(API_URLS.GEOCODING, "address", etTripStart.getText().toString());
-            }
+            public void onClick(DialogInterface dialog, int id) {     }
         });
-
-        
-
-        //TODO put back the old code
 
         final AlertDialog planTripDialog = dialogBuilder.create();
         planTripDialog.show();
+
+        //When the Positive Button ("GO!") is pressed, a sequence starts to map the inputted strings
+        //to actual places using the Google Places API. But, the dialog remains open in case the
+        //user wants to get back and correct his input.
         planTripDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener((new View.OnClickListener()
         {
             @Override

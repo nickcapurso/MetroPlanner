@@ -33,6 +33,10 @@ public class IncidentsActivity extends ActionBarActivity {
      */
     private ProgressDialog mDialog;
 
+    /**
+     * Initialize any variables and views
+     * @param savedInstanceState Unused - rotations disabled.
+     */
    @Override
    protected void onCreate(Bundle savedInstanceState){
        super.onCreate(savedInstanceState);

@@ -5,23 +5,55 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by cheng on 3/27/15.
+ * Container for a metro path planned by the Planning Module.
  */
 public class MetroPath {
-    public ArrayList<StationInfo> firstLeg, secondLeg, thirdLeg;
-    public ArrayList<String> firstLegSharedLines, secondLegSharedLines, thirdLegSharedLines;
+    /**
+     * List of stations that comprise the first leg of the trip
+     */
+    public ArrayList<StationInfo> firstLeg;
+
+    /**
+     * List of stations that comprise the second leg of the trip
+     */
+    public ArrayList<StationInfo> secondLeg;
+
+    /**
+     * Map of key-value pairs where a line is associated with the station that the user should
+     * take the line "towards" (ex. take the Orange line towards Vienna => <OR, Vienna>
+     */
     public Map<String, String> lineTowards = new HashMap<String, String>();
-    public String startLine, endLine;
+
+    /**
+     * The color (line) of the first leg of the line
+     */
+    public String startLine;
+
+    /**
+     * The color (line) of the second leg of the line
+     */
+    public String endLine;
+
+    /**
+     * Set to true if the trip is direct (i.e. starting and ending stations are on the same line)
+     */
     public boolean sameLine;
-    public int startIndex, endIndex;
 
+    /**
+     * The index within firstLeg where the starting station lies
+     */
+    public int startIndex;
 
+    /**
+     * The index within firstLeg where the ending station lies
+     */
+    public int endIndex;
+
+    /**
+     * Initializes the leg ArrayLists
+     */
     public MetroPath(){
         firstLeg = new ArrayList<StationInfo>();
         secondLeg = new ArrayList<StationInfo>();
-        thirdLeg = new ArrayList<StationInfo>();
-        firstLegSharedLines = new ArrayList<String>();
-        secondLegSharedLines = new ArrayList<String>();
-        thirdLegSharedLines = new ArrayList<String>();
     }
 }

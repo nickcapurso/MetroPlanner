@@ -3,7 +3,6 @@ package com.example.nickcapurso.mapsapplication;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,40 +23,107 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 
+/**
+ * The MapsActivity is responsible for initiating the trip-planning sequence (Planning Module) and, when
+ * complete, displaying the metro path & textual directions to the user. The metro path is displayed
+ * on a Google Maps-supplied map.
+ */
 public class MapsActivity extends FragmentActivity {
-    //1-85-147
+    //RGB color definitions for the different metro lines
     private static final int COLOR_BLUE = Color.rgb(4,135,236);
-    //190-19-55
     private static final int COLOR_RED = Color.rgb(190,19,55);
-    //218-135-7
     private static final int COLOR_ORANGE = Color.rgb(218,135,7);
-    //245-212-21
     private static final int COLOR_YELLOW = Color.rgb(245,212,21);
-    //0-176-80
     private static final int COLOR_GREEN = Color.rgb(0,176,80);
-    //162-164-161
     private static final int COLOR_SILVER = Color.rgb(162,164,161);
 
+
+    /**
+     * One second in milliseconds (used for delays)
+     */
     private static final int ONE_SECOND = 1000;
+
+    /**
+     * Line width of the metro paths drawn on the map
+     */
     private static final int LINE_WIDTH = 8;
+
+    /**
+     * Line width of the black outline drawn around metro paths
+     */
     private static final int OUTLINE_WIDTH = 4;
 
-    private boolean mRoutePlanned, mIsPlanning;
-    private int mCurrPath = 0;
-
+    /**
+     * Outline color
+     */
     private static final String OUTLINE_COLOR = "BLK";
 
+    /**
+     * Boolean set when the PlanningModule completes
+     */
+    private boolean mRoutePlanned;
+
+    /**
+     * Boolean set while the PlanningModule is executing
+     */
+    private boolean mIsPlanning;
+
+    /**
+     * The currently displayed metro path
+     */
+    private int mCurrPath = 0;
+
+    /**
+     * The actual maps view
+     */
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    private Intent mIntent;
+
+    /**
+     * The starting address (and GPS coords) received from the MainActivity
+     */
     private AddressInfo mStartingAddr;
+
+    /**
+     * The ending address (and GPS coords) received from the MainActivity
+     */
     private AddressInfo mEndingAddr;
+
+    /**
+     * Reference to the Planning Module (which does the actual action of the trip planning)
+     */
     private PlanningModule mPlanningModule;
+
+    /**
+     * Reference to the progress dialog that displays (and updates its progress) as the Planning
+     * Module executes
+     */
     private ProgressDialog mDialog;
+
+    /**
+     * A list of possible metro paths from the starting address to the ending address (as returned
+     * by the Planning Module)
+     */
     private ArrayList<MetroPath> mPaths;
 
-    private ImageView ivFirstLegColor, ivSecondLegColor;
-    private TextView tvTextLine1;
+    /**
+     * ImageView to be colored according to the first train the user should take
+     */
+    private ImageView ivFirstLegColor;
 
+    /**
+     * ImageView to be colored according to the second train the user should take (if needed)
+     */
+    private ImageView ivSecondLegColor;
+
+    /**
+     * TextView to contain a text description of the trains the user should take
+     */
+    private TextView tvDirections;
+
+    /**
+     * Initialize any variables and views
+     * @param savedInstanceState Unused - rotations disabled.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,9 +136,13 @@ public class MapsActivity extends FragmentActivity {
 
         ivFirstLegColor = (ImageView)findViewById(R.id.ivFirstLegColor);
         ivSecondLegColor= (ImageView)findViewById(R.id.ivSecondLegColor);
-        tvTextLine1 = (TextView)findViewById(R.id.tvTextLine1);
+        tvDirections = (TextView)findViewById(R.id.tvTextLine1);
     }
 
+    /**
+     * The Planning Module is starting in the activity's onResume. Booleans are set
+     * accordingly such that the module does not restart on any subsequent calls to this method
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -81,10 +151,17 @@ public class MapsActivity extends FragmentActivity {
             mIsPlanning = true;
             mPlanningModule = new PlanningModule(mStartingAddr, mEndingAddr, mHandler);
             showProgessDialog();
+
+            //Delay the execution of the planning module by one second (to allow the map to finish initializing)
             mHandler.sendMessageDelayed(mHandler.obtainMessage(HandlerCodes.START_PLANNING_MODULE), ONE_SECOND);
         }
     }
 
+    /**
+     * Handles click events for the text description box (allows the user to browse the
+     * different possible paths)
+     * @param v
+     */
     public void onClick(View v){
         switch(v.getId()){
             case R.id.btnPrevPath:
@@ -99,6 +176,9 @@ public class MapsActivity extends FragmentActivity {
         }
     }
 
+    /**
+     * Set up options for the progress dialog (title, message, max number of progress "ticks", etc.)
+     */
     private void showProgessDialog(){
         mDialog = new ProgressDialog(this);
         mDialog.setCancelable(false);
@@ -110,40 +190,58 @@ public class MapsActivity extends FragmentActivity {
         mDialog.show();
     }
 
+    /**
+     * Callback when the planning module completes
+     */
     private void onPlanningModuleDone(){
         drawPath(mPaths.get(0));
     }
 
+    /**
+     * Draws a single metro path on the map, centers the camera, and sets the zoom level
+     * @param path The metro path to draw
+     */
     private void drawPath(MetroPath path){
         double numCoordinates, centerLatitude, centerLongitude;
         String desc;
         numCoordinates = centerLatitude = centerLongitude = 0;
 
         mMap.clear();
+
+        //Determine if we are only drawing one leg or two (source/destination on different lines)
         if(path.sameLine){
             ArrayList<StationInfo> firstLeg = path.firstLeg;
+
+            //Draw two lines between each station on the line (one for the outline, one for the color)
             for(int i = 0; i < firstLeg.size(); i++) {
                 if(i < firstLeg.size()-1) {
+
+                    //Drawing outline
                     mMap.addPolyline(new PolylineOptions()
                             .add(new LatLng(firstLeg.get(i).latitude, firstLeg.get(i).longitude),
                                     new LatLng(firstLeg.get(i + 1).latitude, firstLeg.get(i + 1).longitude))
                             .width(LINE_WIDTH + OUTLINE_WIDTH)
                             .color(getColor(OUTLINE_COLOR)));
 
+                    //Drawing colored line
                     mMap.addPolyline(new PolylineOptions()
                             .add(new LatLng(firstLeg.get(i).latitude, firstLeg.get(i).longitude),
                                     new LatLng(firstLeg.get(i + 1).latitude, firstLeg.get(i + 1).longitude))
                             .width(LINE_WIDTH)
                             .color(getColor(path.startLine)));
                 }
+
+                //Build up points for the camera-centering calculation
                 numCoordinates++;
                 centerLatitude += firstLeg.get(i).latitude;
                 centerLongitude += firstLeg.get(i).longitude;
             }
 
+            //Add a map marker for the starting and ending stations
             mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(path.startIndex).latitude, path.firstLeg.get(path.startIndex).longitude)).title("Start: " + path.firstLeg.get(path.startIndex).name));
             mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(path.endIndex).latitude, path.firstLeg.get(path.endIndex).longitude)).title("End: " + path.firstLeg.get(path.endIndex).name));
 
+            //Set the textual directions
             desc = "Start: " + path.firstLeg.get(path.startIndex).name
             + "\nTake: " + getLine(path.startLine) + " line towards " + path.lineTowards.get(path.startLine)
             + "\nEnd: " + path.firstLeg.get(path.endIndex).name;
@@ -157,6 +255,8 @@ public class MapsActivity extends FragmentActivity {
             String longerLine, shorterLine;
 
             Log.d(MainActivity.TAG, "First color: " + path.startLine + " second: " + path.endLine);
+            //Want to draw both paths simultaneously in a single for-loop (thus, need to determine
+            //which path is shorter to avoid an IndexOutOfBounds exception)
             if(path.firstLeg.size() >= path.secondLeg.size()){
                 drawLongerSection = path.firstLeg;
                 drawShorterSection = path.secondLeg;
@@ -169,18 +269,23 @@ public class MapsActivity extends FragmentActivity {
                 shorterLine = path.startLine;
             }
 
+            //Draw both legs of the trip simultaneously
             for(int i = 0; i < drawLongerSection.size(); i++){
+                //Build up points for the camera-centering calculation (for the longer leg)
                 numCoordinates++;
                 centerLatitude += drawLongerSection.get(i).latitude;
                 centerLongitude += drawLongerSection.get(i).longitude;
 
+                //Draw the longer leg of the trip
                 if(i < drawLongerSection.size()-1) {
+                    //Drawing outline
                     mMap.addPolyline(new PolylineOptions()
                             .add(new LatLng(drawLongerSection.get(i).latitude, drawLongerSection.get(i).longitude),
                                     new LatLng(drawLongerSection.get(i + 1).latitude, drawLongerSection.get(i + 1).longitude))
                             .width(LINE_WIDTH + OUTLINE_WIDTH)
                             .color(getColor(OUTLINE_COLOR)));
 
+                    //Drawing colored line
                     mMap.addPolyline(new PolylineOptions()
                             .add(new LatLng(drawLongerSection.get(i).latitude, drawLongerSection.get(i).longitude),
                                     new LatLng(drawLongerSection.get(i + 1).latitude, drawLongerSection.get(i + 1).longitude))
@@ -188,18 +293,22 @@ public class MapsActivity extends FragmentActivity {
                             .color(getColor(longerLine)));
                 }
 
+                //Draw the shorter leg of the trip
                 if(i < drawShorterSection.size()){
+                    //Build up points for the camera-centering calculation (for the shorter leg)
                     numCoordinates++;
                     centerLatitude += drawShorterSection.get(i).latitude;
                     centerLongitude += drawShorterSection.get(i).longitude;
 
                     if(i < drawShorterSection.size()-1) {
+                        //Drawing outline
                         mMap.addPolyline(new PolylineOptions()
                                 .add(new LatLng(drawShorterSection.get(i).latitude, drawShorterSection.get(i).longitude),
                                         new LatLng(drawShorterSection.get(i + 1).latitude, drawShorterSection.get(i + 1).longitude))
                                 .width(LINE_WIDTH + OUTLINE_WIDTH)
                                 .color(getColor(OUTLINE_COLOR)));
 
+                        //Drawing colored line
                         mMap.addPolyline(new PolylineOptions()
                                 .add(new LatLng(drawShorterSection.get(i).latitude, drawShorterSection.get(i).longitude),
                                         new LatLng(drawShorterSection.get(i + 1).latitude, drawShorterSection.get(i + 1).longitude))
@@ -209,13 +318,17 @@ public class MapsActivity extends FragmentActivity {
                 }
             }
 
+            //Determine the intersection station (needed for the textual description)
             int intersection = 0;
             if(path.startIndex == 0)
                 intersection = path.firstLeg.size()-1;
 
+            //Add map markers for the starting, intersection, and ending stations
             mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(path.startIndex).latitude, path.firstLeg.get(path.startIndex).longitude)).title("Start: " + path.firstLeg.get(path.startIndex).name ));
             mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(intersection).latitude, path.firstLeg.get(intersection).longitude)).title("Transfer: " + path.firstLeg.get(intersection).name));
             mMap.addMarker(new MarkerOptions().position(new LatLng(path.secondLeg.get(path.endIndex).latitude, path.secondLeg.get(path.endIndex).longitude)).title("End: " + path.secondLeg.get(path.endIndex).name));
+
+            //Set the textual directions
             desc = "Start: " + path.firstLeg.get(path.startIndex).name
             + "\nTake: " + getLine(path.startLine) + " line towards " + path.lineTowards.get(path.startLine)
             + "\nTransfer: " + path.firstLeg.get(intersection).name
@@ -230,10 +343,13 @@ public class MapsActivity extends FragmentActivity {
                     " and end at " + path.secondLeg.get(path.endIndex).name);
         }
 
+        //The camera should be moved to the center point of all the GPS coordinates of the stations along the path
         mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(centerLatitude/numCoordinates, centerLongitude/numCoordinates)));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(11));
-        tvTextLine1.setText(desc);
+        tvDirections.setText(desc);
 
+        //Set the background colors for both of the ImageViews
+        //Hide the second colored ImageView if there's only one leg to the trip
         if(path.sameLine){
             ivFirstLegColor.setBackgroundColor(getColor(path.startLine));
             ivSecondLegColor.setVisibility(View.INVISIBLE);
@@ -244,6 +360,11 @@ public class MapsActivity extends FragmentActivity {
         }
     }
 
+    /**
+     * Returns the spelled-out color of a line's color code
+     * @param code
+     * @return
+     */
     public String getLine(String code){
         String line = "";
 
@@ -271,6 +392,11 @@ public class MapsActivity extends FragmentActivity {
     }
 
 
+    /**
+     * Returns a COLOR value for a specific line code
+     * @param line
+     * @return
+     */
     public int getColor(String line){
         int color;
         //RD, BL, YL, OR, GR, or SV
@@ -300,9 +426,10 @@ public class MapsActivity extends FragmentActivity {
     }
 
     /**
+     * ---- Auto-Generated Method ----
+     *
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
-     * installed) and the map has not already been instantiated.. This will ensure that we only ever
-     * call {@link #setUpMap()} once when {@link #mMap} is not null.
+     * installed) and the map has not already been instantiated.
      * <p/>
      * If it isn't installed {@link SupportMapFragment} (and
      * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
@@ -322,26 +449,15 @@ public class MapsActivity extends FragmentActivity {
                     .getMap();
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
-                //setUpMap();
-               /* Polyline startLine = mMap.addPolyline(new PolylineOptions()
-                        .add(new LatLng(38.9006980092, -77.050277739), new LatLng(38.9050688072, -76.8420375202))
-                        .width(5)
-                        .color(Color.BLUE));
-                        */
+               Log.d(MainActivity.TAG, "Error setting up Map");
             }
         }
     }
 
     /**
-     * This is where we can add markers or lines, add listeners or move the camera. In this case, we
-     * just add a marker near Africa.
-     * <p/>
-     * This should only be called once and when we are sure that {@link #mMap} is not null.
+     * Receives messages from the Planning Module for network timeouts, progress bar updates,
+     * success / failure, etc.
      */
-    private void setUpMap() {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
-    }
-
     private Handler mHandler = new Handler(){
         @Override
         public void handleMessage(Message message){
@@ -376,6 +492,10 @@ public class MapsActivity extends FragmentActivity {
         }
     };
 
+    /**
+     * Allows the user to restart the Planning Module if there was a network problem, for example
+     * @param errMsg
+     */
     private void showRetryDialog(String errMsg){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Error Finding Metro Path");

@@ -103,6 +103,11 @@ public class HistoryActivity extends ActionBarActivity implements LocationListen
      */
     private SharedPreferences.Editor mPrefsEditor;
 
+
+    /**
+     * Initialize any variables and views
+     * @param savedInstanceState Unused - rotations disabled.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -119,6 +124,11 @@ public class HistoryActivity extends ActionBarActivity implements LocationListen
         mResave = mPrefs.getBoolean(RESAVE_KEY, false);
     }
 
+    /**
+     * Initialize the options menu on the ActionBar
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
         MenuInflater inflater = getMenuInflater();
