@@ -23,7 +23,6 @@ public class HistoryView extends LinearLayout{
     private Handler mClientHandler;
 
 
-
     /**
      * Sole constructor. Also takes in an ID and a reference to the parent activity (HistoryActivity)'s handler
      * to send a message to when the view is clicked.
