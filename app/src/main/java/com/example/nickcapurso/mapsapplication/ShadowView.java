@@ -5,10 +5,14 @@ import android.view.View;
 import android.view.ViewGroup;
 
 /**
- * Created by nickcapurso on 3/4/15.
+ * Custom view used to display a "shadow" under other views (like IncidentView and HistoryView)
  */
 public class ShadowView extends View{
 
+    /**
+     * Simple view of a fixed height (dependent on the pixel density of the screen), colored grey.
+     * @param context
+     */
     public ShadowView(Context context) {
         super(context);
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,0);
