@@ -34,7 +34,7 @@ public class AddressInfo implements Parcelable {
 
     /**
      * Used to write the contents of an AddressInfo into parcel
-     * @param dest
+     * @param dest The resulting parcel
      * @param flags
      */
     @Override

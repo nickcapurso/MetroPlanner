@@ -1,7 +1,7 @@
 package com.example.nickcapurso.mapsapplication;
 
 /**
- * Holds various codes for message passings via Handlers
+ * Holds various codes for message passing via Handlers
  */
 public final class HandlerCodes {
     public static final byte JSON_FETCH_DONE = 0x10;
