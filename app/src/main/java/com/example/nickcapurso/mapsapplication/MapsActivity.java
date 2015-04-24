@@ -14,10 +14,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -37,6 +40,10 @@ public class MapsActivity extends FragmentActivity {
     private static final int COLOR_GREEN = Color.rgb(0,176,80);
     private static final int COLOR_SILVER = Color.rgb(162,164,161);
 
+    /**
+     * Padding for the edges of the map (in pixels)
+     */
+    private static final int ZOOM_PADDING = 75;
 
     /**
      * One second in milliseconds (used for delays)
@@ -121,6 +128,11 @@ public class MapsActivity extends FragmentActivity {
     private TextView tvDirections;
 
     /**
+     * ArrayList containing the map markers (starting station, intersection station, ending station)
+     */
+    ArrayList<Marker> mMarkers;
+
+    /**
      * Initialize any variables and views
      * @param savedInstanceState Unused - rotations disabled.
      */
@@ -137,6 +149,8 @@ public class MapsActivity extends FragmentActivity {
         ivFirstLegColor = (ImageView)findViewById(R.id.ivFirstLegColor);
         ivSecondLegColor= (ImageView)findViewById(R.id.ivSecondLegColor);
         tvDirections = (TextView)findViewById(R.id.tvTextLine1);
+
+        mMarkers = new ArrayList<Marker>();
     }
 
     /**
@@ -204,7 +218,6 @@ public class MapsActivity extends FragmentActivity {
     private void drawPath(MetroPath path){
         double numCoordinates, centerLatitude, centerLongitude;
         String desc;
-        numCoordinates = centerLatitude = centerLongitude = 0;
 
         mMap.clear();
 
@@ -230,16 +243,14 @@ public class MapsActivity extends FragmentActivity {
                             .width(LINE_WIDTH)
                             .color(getColor(path.startLine)));
                 }
-
-                //Build up points for the camera-centering calculation
-                numCoordinates++;
-                centerLatitude += firstLeg.get(i).latitude;
-                centerLongitude += firstLeg.get(i).longitude;
             }
 
             //Add a map marker for the starting and ending stations
-            mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(path.startIndex).latitude, path.firstLeg.get(path.startIndex).longitude)).title("Start: " + path.firstLeg.get(path.startIndex).name));
-            mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(path.endIndex).latitude, path.firstLeg.get(path.endIndex).longitude)).title("End: " + path.firstLeg.get(path.endIndex).name));
+            mMarkers.add(mMap.addMarker(
+                    new MarkerOptions().position(new LatLng(path.firstLeg.get(path.startIndex).latitude,
+                            path.firstLeg.get(path.startIndex).longitude)).title("Start: " + path.firstLeg.get(path.startIndex).name)));
+            mMarkers.add(mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(path.endIndex).latitude,
+                    path.firstLeg.get(path.endIndex).longitude)).title("End: " + path.firstLeg.get(path.endIndex).name)));
 
             //Set the textual directions
             desc = "Start: " + path.firstLeg.get(path.startIndex).name
@@ -271,10 +282,6 @@ public class MapsActivity extends FragmentActivity {
 
             //Draw both legs of the trip simultaneously
             for(int i = 0; i < drawLongerSection.size(); i++){
-                //Build up points for the camera-centering calculation (for the longer leg)
-                numCoordinates++;
-                centerLatitude += drawLongerSection.get(i).latitude;
-                centerLongitude += drawLongerSection.get(i).longitude;
 
                 //Draw the longer leg of the trip
                 if(i < drawLongerSection.size()-1) {
@@ -295,10 +302,6 @@ public class MapsActivity extends FragmentActivity {
 
                 //Draw the shorter leg of the trip
                 if(i < drawShorterSection.size()){
-                    //Build up points for the camera-centering calculation (for the shorter leg)
-                    numCoordinates++;
-                    centerLatitude += drawShorterSection.get(i).latitude;
-                    centerLongitude += drawShorterSection.get(i).longitude;
 
                     if(i < drawShorterSection.size()-1) {
                         //Drawing outline
@@ -324,9 +327,14 @@ public class MapsActivity extends FragmentActivity {
                 intersection = path.firstLeg.size()-1;
 
             //Add map markers for the starting, intersection, and ending stations
-            mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(path.startIndex).latitude, path.firstLeg.get(path.startIndex).longitude)).title("Start: " + path.firstLeg.get(path.startIndex).name ));
-            mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(intersection).latitude, path.firstLeg.get(intersection).longitude)).title("Transfer: " + path.firstLeg.get(intersection).name));
-            mMap.addMarker(new MarkerOptions().position(new LatLng(path.secondLeg.get(path.endIndex).latitude, path.secondLeg.get(path.endIndex).longitude)).title("End: " + path.secondLeg.get(path.endIndex).name));
+            mMarkers.add(mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(path.startIndex).latitude,
+                    path.firstLeg.get(path.startIndex).longitude)).title("Start: " + path.firstLeg.get(path.startIndex).name)));
+            mMarkers.add(mMap.addMarker(new MarkerOptions().position(new LatLng(path.firstLeg.get(intersection).latitude,
+                    path.firstLeg.get(intersection).longitude)).title("Transfer: " + path.firstLeg.get(intersection).name)));
+            mMarkers.add(mMap.addMarker(new MarkerOptions().position(new LatLng(path.secondLeg.get(path.endIndex).latitude,
+                    path.secondLeg.get(path.endIndex).longitude)).title("End: " + path.secondLeg.get(path.endIndex).name)));
+
+
 
             //Set the textual directions
             desc = "Start: " + path.firstLeg.get(path.startIndex).name
@@ -343,9 +351,6 @@ public class MapsActivity extends FragmentActivity {
                     " and end at " + path.secondLeg.get(path.endIndex).name);
         }
 
-        //The camera should be moved to the center point of all the GPS coordinates of the stations along the path
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(centerLatitude/numCoordinates, centerLongitude/numCoordinates)));
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(11));
         tvDirections.setText(desc);
 
         //Set the background colors for both of the ImageViews
@@ -358,6 +363,15 @@ public class MapsActivity extends FragmentActivity {
             ivFirstLegColor.setBackgroundColor(getColor(path.startLine));
             ivSecondLegColor.setBackgroundColor(getColor(path.endLine));
         }
+
+        //Move & zoom the camera to fit the entire metro path on screen
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (Marker marker : mMarkers) {
+            builder.include(marker.getPosition());
+        }
+        LatLngBounds bounds = builder.build();
+        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, ZOOM_PADDING);
+        mMap.animateCamera(cu);
     }
 
     /**

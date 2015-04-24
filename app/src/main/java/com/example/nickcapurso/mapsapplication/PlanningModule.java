@@ -36,9 +36,9 @@ public class PlanningModule{
     private static final int API_DELAY = ONE_SECOND / 2;
 
     /**
-     * Look for station entrances within half a mile of the inputted addresses
+     * Look for station entrances within a mile of the inputted addresses
      */
-    private static final int HALF_MILE_IN_METERS = 805;
+    private static final int MILE_IN_METERS = 1610;
 
     /**
      * Line codes for the metro lines (should be made generic in the future - by fetching
@@ -120,7 +120,7 @@ public class PlanningModule{
         mCurrQueryNum = 0;
         Log.d(MainActivity.TAG, "Fetching first station entrance");
         new JSONFetcher(mHandler).execute(API_URLS.STATION_ENTRANCES, "api_key", API_URLS.WMATA_API_KEY,
-                "Lat", ""+mStartingAddr.latitude, "Lon", ""+mStartingAddr.longitude, "Radius", ""+HALF_MILE_IN_METERS);
+                "Lat", ""+mStartingAddr.latitude, "Lon", ""+mStartingAddr.longitude, "Radius", ""+ MILE_IN_METERS);
     }
 
     /**
@@ -187,7 +187,7 @@ public class PlanningModule{
 
                 //Set error message if no stations in range
                 if(mState == STATE_ERR)
-                    mErrMsg = "No metro station entrances within a half mile of " + ((mCurrQueryNum == 0)?  "starting address" : "ending address");
+                    mErrMsg = "No metro station entrances within a mile of " + ((mCurrQueryNum == 0)?  "starting address" : "ending address");
                 break;
 
             //Parse out the information about the starting / ending metro stations
@@ -424,7 +424,7 @@ public class PlanningModule{
                     mCurrQueryNum++;
                     Log.d(MainActivity.TAG, "Fetching second station entrance");
                     new JSONFetcher(mHandler).execute(API_URLS.STATION_ENTRANCES, "api_key", API_URLS.WMATA_API_KEY,
-                            "Lat", ""+mEndingAddr.latitude, "Lon", ""+mEndingAddr.longitude, "Radius", ""+HALF_MILE_IN_METERS);
+                            "Lat", ""+mEndingAddr.latitude, "Lon", ""+mEndingAddr.longitude, "Radius", ""+ MILE_IN_METERS);
 
                 //Second query complete, time to get the station info (and therefore the lines) for the starting station
                 }else {
