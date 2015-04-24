@@ -6,6 +6,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -44,6 +47,37 @@ public class IncidentsActivity extends ActionBarActivity {
 
        mMainLayout = (LinearLayout)findViewById(R.id.incidentLayout);
    }
+
+    /**
+     * Initialize the options menu on the ActionBar
+     * @param menu
+     * @return
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_incidents, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /**
+     * Processes click events for items on the ActionBar (either clears the history
+     * or sets the history re-saving option)
+     * @param item The clicked menu item on the ActionBar.
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.refresh_incidents:
+                mMainLayout.removeAllViews();
+                mDialog = ProgressDialog.show(this, "Please Wait...", "Fetching incidents...", true);
+                new JSONFetcher(mHandler).execute(API_URLS.RAIL_INCIDENTS, "api_key", API_URLS.WMATA_API_KEY);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
     /**
      * The actual query for metro incidents is done during the onResume callback.

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">MapsApplication</string>
     <string name="title_activity_maps">Map</string>
-    <string name="quick_plan">Quick Plan</string>
+    <string name="quick_plan">Quick Plan (destination only)</string>
     <string name="search">Search</string>
     <string name="plan_trip">Plan Trip</string>
     <string name="trip_history">Trip History</string>
@@ -12,6 +12,7 @@
     <string name="trip_end">Trip End</string>
     <string name="clear_history">Clear History</string>
     <string name="resave_history">Save Recalled\nHistory Items</string>
+    <string name="refresh">Refresh</string>
 
     <string name="metro_planner">Metro Planner</string>
 </resources>
