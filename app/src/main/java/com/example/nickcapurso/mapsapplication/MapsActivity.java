@@ -71,6 +71,11 @@ public class MapsActivity extends FragmentActivity {
     private boolean mRoutePlanned;
 
     /**
+     * Set while the retry dialog is being shown to the user
+     */
+    private boolean mRetryShowing;
+
+    /**
      * Boolean set while the PlanningModule is executing
      */
     private boolean mIsPlanning;
@@ -494,13 +499,15 @@ public class MapsActivity extends FragmentActivity {
                     mDialog.cancel();
                     mIsPlanning = false;
                     Toast.makeText(MapsActivity.this, (String)message.obj, Toast.LENGTH_LONG).show();
-                    showRetryDialog((String)message.obj);
+                    if(!mRetryShowing)
+                        showRetryDialog((String)message.obj);
                     break;
                 case HandlerCodes.TIMEOUT:
                     mDialog.cancel();
                     mIsPlanning = false;
                     Toast.makeText(MapsActivity.this, "Network timeout: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
-                    showRetryDialog("Network timeout: please make sure you have networking services enabled.");
+                    if(!mRetryShowing)
+                        showRetryDialog("Network timeout: please make sure you have networking services enabled.");
                     break;
             }
         }
@@ -516,6 +523,7 @@ public class MapsActivity extends FragmentActivity {
         builder.setMessage(errMsg);
         builder.setPositiveButton("Retry", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
+                mRetryShowing = false;
                 mIsPlanning = true;
                 mPlanningModule = new PlanningModule(mStartingAddr, mEndingAddr, mHandler);
                 showProgessDialog();
@@ -524,11 +532,12 @@ public class MapsActivity extends FragmentActivity {
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
+                mRetryShowing = false;
                 dialog.cancel();
                 MapsActivity.this.finish();
             }
         });
-
+        mRetryShowing = true;
         builder.create().show();
     }
 }

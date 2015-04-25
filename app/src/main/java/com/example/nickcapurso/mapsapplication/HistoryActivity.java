@@ -229,6 +229,7 @@ public class HistoryActivity extends ActionBarActivity implements LocationListen
                 //Location fetch taking too long
                 case HandlerCodes.TIMEOUT:
                     Toast.makeText(HistoryActivity.this, "Unable to get location fix.", Toast.LENGTH_LONG).show();
+                    mLocationManager.removeUpdates(HistoryActivity.this);
                     break;
             }
         }

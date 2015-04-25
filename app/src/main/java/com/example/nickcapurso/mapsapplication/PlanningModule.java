@@ -715,15 +715,18 @@ public class PlanningModule{
             Log.d(MainActivity.TAG, "PlanningModule, message received ("+message.what+")");
             switch(message.what){
                 case HandlerCodes.JSON_FETCH_DONE:
-                    parseFetchResults((String) message.obj);
+                    if(mState != STATE_ERR)
+                        parseFetchResults((String) message.obj);
                     break;
                 case HandlerCodes.JSON_FETCH_ERR:
+                    mState = STATE_ERR;
                     mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.PLANNING_MODULE_ERR, "Error receiving data from WMATA"));
                     break;
                 case HandlerCodes.FETCH_DELAY_DONE:
                     continueFetches();
                     break;
                 case HandlerCodes.TIMEOUT:
+                    mState = STATE_ERR;
                     mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.PLANNING_MODULE_ERR, "Network error: please make sure you have networking services enabled."));
                     break;
             }

@@ -79,8 +79,10 @@ public class AddressPicker {
             jsonParser = new JSONObject(addressJSON);
 
             //Make sure the error status code isn't set
-            if(!checkStatusCode(jsonParser.getString("status")))
+            if(!checkStatusCode(jsonParser.getString("status"))) {
+                mClientHandler.sendMessage(mClientHandler.obtainMessage(HandlerCodes.ADDRESS_PICKER_ERR));
                 return;
+            }
 
             jsonArray = jsonParser.getJSONArray("results");
             Log.d(MainActivity.TAG, "Elements: " + jsonArray.length());

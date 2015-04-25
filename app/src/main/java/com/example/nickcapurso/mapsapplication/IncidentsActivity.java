@@ -70,6 +70,7 @@ public class IncidentsActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
             case R.id.refresh_incidents:
+                mFetchComplete = false;
                 mMainLayout.removeAllViews();
                 mDialog = ProgressDialog.show(this, "Please Wait...", "Fetching incidents...", true);
                 new JSONFetcher(mHandler).execute(API_URLS.RAIL_INCIDENTS, "api_key", API_URLS.WMATA_API_KEY);
@@ -152,15 +153,19 @@ public class IncidentsActivity extends ActionBarActivity {
                         Toast.makeText(IncidentsActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
                         return;
                     }
-                    mFetchComplete = true;
-                    incidentsFetched((String)message.obj);
+                    if(!mFetchComplete) {
+                        mFetchComplete = true;
+                        incidentsFetched((String) message.obj);
+                    }
                     break;
                 case HandlerCodes.TIMEOUT:
+                    mFetchComplete = true;
                     Toast.makeText(IncidentsActivity.this, "Network error: please make sure you have networking services enabled.", Toast.LENGTH_LONG).show();
                     if(mDialog.isShowing())
                         mDialog.cancel();
                     break;
                 case HandlerCodes.JSON_FETCH_ERR:
+                    mFetchComplete = true;
                     Toast.makeText(IncidentsActivity.this, "Error receiving data from WMATA", Toast.LENGTH_LONG).show();
                     if(mDialog.isShowing())
                         mDialog.cancel();
