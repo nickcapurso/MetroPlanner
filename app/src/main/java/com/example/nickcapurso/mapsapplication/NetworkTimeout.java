@@ -14,9 +14,9 @@ public class NetworkTimeout extends CountDownTimer {
     public static final long ONE_SECOND_MILLIS = 1000;
 
     /**
-     * 10 * one second = 10 seconds
+     * 15 * one second = 15 seconds
      */
-    public static final long DEFAULT_PERIOD = 10 * ONE_SECOND_MILLIS;
+    public static final long DEFAULT_PERIOD = 15 * ONE_SECOND_MILLIS;
 
     /**
      * Handler to send a message to when the time

@@ -285,6 +285,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener{
             @Override
             public void onClick(View v)
             {
+                mGettingEndingAddr = false;
                 mDialog = ProgressDialog.show(MainActivity.this, "Please Wait...", "Finding starting address...", true);
                 mEndingAddrString = etTripEnd.getText().toString();
                 new JSONFetcher(mHandler).execute(API_URLS.GEOCODING, "address", etTripStart.getText().toString());

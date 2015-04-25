@@ -11,6 +11,8 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,9 +43,19 @@ public class MapsActivity extends FragmentActivity {
     private static final int COLOR_SILVER = Color.rgb(162,164,161);
 
     /**
+     * Used to calculate DP (for setting View sizes)
+     */
+    private static float SCALE;
+
+    /**
      * Padding for the edges of the map (in pixels)
      */
     private static final int ZOOM_PADDING = 75;
+
+    /**
+     * Height (in DP) for directions layout when only three lines are needed
+     */
+    private static final int DIRECTIONS_HEIGHT_SMALL = 60;
 
     /**
      * One second in milliseconds (used for delays)
@@ -138,6 +150,11 @@ public class MapsActivity extends FragmentActivity {
     ArrayList<Marker> mMarkers;
 
     /**
+     * Layout that contains the textual directions
+     */
+    RelativeLayout mDescriptionLayout;
+
+    /**
      * Initialize any variables and views
      * @param savedInstanceState Unused - rotations disabled.
      */
@@ -156,6 +173,9 @@ public class MapsActivity extends FragmentActivity {
         tvDirections = (TextView)findViewById(R.id.tvTextLine1);
 
         mMarkers = new ArrayList<Marker>();
+        mDescriptionLayout = (RelativeLayout)findViewById(R.id.layout_description);
+
+        SCALE = getResources().getDisplayMetrics().density;
     }
 
     /**
@@ -229,6 +249,8 @@ public class MapsActivity extends FragmentActivity {
         //Determine if we are only drawing one leg or two (source/destination on different lines)
         if(path.sameLine){
             ArrayList<StationInfo> firstLeg = path.firstLeg;
+            mDescriptionLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,(int)(DIRECTIONS_HEIGHT_SMALL * SCALE + 0.5f)));
 
             //Draw two lines between each station on the line (one for the outline, one for the color)
             for(int i = 0; i < firstLeg.size(); i++) {
@@ -538,6 +560,7 @@ public class MapsActivity extends FragmentActivity {
             }
         });
         mRetryShowing = true;
+        builder.setCancelable(false);
         builder.create().show();
     }
 }
