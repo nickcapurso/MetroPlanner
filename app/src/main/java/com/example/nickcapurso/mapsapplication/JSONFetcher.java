@@ -43,6 +43,7 @@ public class JSONFetcher extends AsyncTask<String, Void, String>{
      * Uses apache.http classes to build and execute a network request
      * @param params An array of key-value pairs to include into the URL (for example,
      *               for the Geocoding API, there will be "address" following by the address to geocode.)
+     *               Odd-indexed parameters are the "keys" and the even-indexed parameters are the "values"
      *
      *               The first param (params[0]) will be the URL up until the optional components.
      *

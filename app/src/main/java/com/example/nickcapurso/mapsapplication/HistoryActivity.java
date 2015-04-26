@@ -407,8 +407,6 @@ public class HistoryActivity extends ActionBarActivity implements LocationListen
             this.startLon = Double.parseDouble(startLon);
             this.endLat = Double.parseDouble(endLat);
             this.endLon = Double.parseDouble(endLon);
-
-            Log.d(MainActivity.TAG, "Four tuple {" + this.startLat + ", " + this.startLon + ", " + this.endLat + ", " + this.endLon + "}");
         };
     }
 }

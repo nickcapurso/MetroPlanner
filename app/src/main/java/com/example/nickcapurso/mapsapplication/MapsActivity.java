@@ -293,6 +293,7 @@ public class MapsActivity extends FragmentActivity {
             String longerLine, shorterLine;
 
             Log.d(MainActivity.TAG, "First color: " + path.startLine + " second: " + path.endLine);
+
             //Want to draw both paths simultaneously in a single for-loop (thus, need to determine
             //which path is shorter to avoid an IndexOutOfBounds exception)
             if(path.firstLeg.size() >= path.secondLeg.size()){
@@ -307,7 +308,7 @@ public class MapsActivity extends FragmentActivity {
                 shorterLine = path.startLine;
             }
 
-            //Draw both legs of the trip simultaneously
+            //Draw both legs of the trip simultaneously (single for-loop)
             for(int i = 0; i < drawLongerSection.size(); i++){
 
                 //Draw the longer leg of the trip
@@ -397,6 +398,8 @@ public class MapsActivity extends FragmentActivity {
             builder.include(marker.getPosition());
         }
         LatLngBounds bounds = builder.build();
+
+        //Camera is set to fit all the markers on the screen
         CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, ZOOM_PADDING);
         mMap.animateCamera(cu);
     }

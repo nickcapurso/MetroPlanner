@@ -253,7 +253,7 @@ public class PlanningModule{
                         break;
                     }
 
-                    //TODO station may have perpendicular lines, where the first line may not be shared with the others
+                    //TODO station may have perpendicular lines, where the first line may not be shared with the others (not the case for the DC metro)
                     //In the case of the D.C. Metro, all lines intersect every other line at some point, so determining
                     //the path based on an arbitrarily chosen line (running through either the starting/ending
                     // station) is reasonable.
@@ -632,7 +632,7 @@ public class PlanningModule{
     /**
      * Parses a list of (alternate) lines info out of a JSON object returned by a Metro API query
      * @param jsonResult
-     * @return The list of lines
+     * @return The list of lines at a given station
      */
     private ArrayList<String> parseAltLines(ArrayList<String> currLines, String jsonResult){
         ArrayList<String> lines = currLines;

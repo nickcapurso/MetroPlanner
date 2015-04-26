@@ -18,14 +18,14 @@ android:layout_height="fill_parent">
                 android:id="@+id/etTripStart"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPostalAddress"
+                android:inputType="textFilter|textPostalAddress"
                 android:hint="@string/trip_start"/>
 
             <EditText
                 android:id="@+id/etTripEnd"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPostalAddress"
+                android:inputType="textFilter|textPostalAddress"
                 android:hint="@string/trip_end"/>
         </LinearLayout>
 

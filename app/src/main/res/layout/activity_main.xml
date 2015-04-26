@@ -20,7 +20,7 @@
             android:layout_weight="1"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:inputType="textPostalAddress"
+            android:inputType="textFilter|textPostalAddress"
             android:hint="@string/quick_plan"/>
 
         <ImageButton
@@ -72,7 +72,6 @@
                     android:paddingBottom="@dimen/padding_small"
                     android:paddingTop="@dimen/padding_small"
                     android:background="@drawable/white_button"
-                    android:gravity="center"
                     android:text="@string/trip_history">
                 </Button>
 

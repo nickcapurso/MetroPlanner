@@ -99,10 +99,6 @@ public class MainActivity extends ActionBarActivity implements LocationListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-
-        for(String s : mLocationManager.getAllProviders()){
-            Log.d(TAG, "Provider: " + s);
-        }
     }
 
 
@@ -147,6 +143,8 @@ public class MainActivity extends ActionBarActivity implements LocationListener{
 
     /**
      * Receives messages from other entities and handles them on this Activity's (the UI) thread.
+     * This includes results from network queries, network errors/timeouts, and messages from
+     * the AddressPicker class.
      */
     private Handler mHandler = new Handler(){
         @Override

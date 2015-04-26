@@ -6,6 +6,10 @@ import android.provider.BaseColumns;
  * Constants used to create the database table and entries for the trip history
  */
 public final class HistoryDbInfo {
+
+    /**
+     * Implementing BaseColumns so that the table entries get the Android-generated _ID column
+     */
     public static abstract class HistoryEntry implements BaseColumns {
         public static final String TABLE_NAME = "TripHistory";
         public static final int TABLE_VERSION = 1;
