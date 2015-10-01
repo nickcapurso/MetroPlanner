@@ -12,6 +12,12 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.example.nickcapurso.mapsapplication.common.API_URLS;
+import com.example.nickcapurso.mapsapplication.common.HandlerCodes;
+import com.example.nickcapurso.mapsapplication.json.JSONFetcher;
+import com.example.nickcapurso.mapsapplication.views.IncidentView;
+import com.example.nickcapurso.mapsapplication.views.ShadowView;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

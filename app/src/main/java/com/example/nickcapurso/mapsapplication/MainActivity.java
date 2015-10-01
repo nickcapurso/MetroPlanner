@@ -22,9 +22,17 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.nickcapurso.mapsapplication.common.API_URLS;
+import com.example.nickcapurso.mapsapplication.common.HandlerCodes;
+import com.example.nickcapurso.mapsapplication.db.HistoryDbHelper;
+import com.example.nickcapurso.mapsapplication.json.JSONFetcher;
+import com.example.nickcapurso.mapsapplication.json.NetworkTimeout;
+import com.example.nickcapurso.mapsapplication.pathfinding.AddressInfo;
+import com.example.nickcapurso.mapsapplication.views.AddressPicker;
+
 import java.util.Calendar;
 
-import static com.example.nickcapurso.mapsapplication.HistoryDbInfo.HistoryEntry;
+import static com.example.nickcapurso.mapsapplication.db.HistoryDbInfo.HistoryEntry;
 
 /**
  * The main menu activity of the Metro Planner app. Gateway to the Incident, History, and Maps

@@ -22,10 +22,18 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.example.nickcapurso.mapsapplication.common.HandlerCodes;
+import com.example.nickcapurso.mapsapplication.db.HistoryDbHelper;
+import com.example.nickcapurso.mapsapplication.json.NetworkTimeout;
+import com.example.nickcapurso.mapsapplication.pathfinding.AddressInfo;
+import com.example.nickcapurso.mapsapplication.views.HistoryView;
+import com.example.nickcapurso.mapsapplication.views.IncidentView;
+import com.example.nickcapurso.mapsapplication.views.ShadowView;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import static com.example.nickcapurso.mapsapplication.HistoryDbInfo.HistoryEntry;
+import static com.example.nickcapurso.mapsapplication.db.HistoryDbInfo.HistoryEntry;
 /**
  * Activity which allows a user to view past metro trips they have planned (i.e. gotten metro
  * directions for). A user is able to select one of the history items to view the trip/directions
