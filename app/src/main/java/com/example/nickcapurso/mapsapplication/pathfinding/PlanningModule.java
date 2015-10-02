@@ -422,7 +422,7 @@ public class PlanningModule{
     /**
      * Called after a small delay so as to not overrun the maximum allowed Metro API queries per second.
      * Starts the next network request depending on the current state (refer to the documentation for
-     * parseFetchResuls(...)
+     * parseFetchResults(...)
      */
     private void continueFetches(){
         switch(mState){
@@ -537,7 +537,7 @@ public class PlanningModule{
 
         //Iterate in the reverse section if an intersection station wasn't found
         Log.d(MainActivity.TAG, "Finding intersection station (iterating in reverse)...");
-        for(int i = startIndex; i > 0; i--)
+        for(int i = startIndex; i >= 0; i--)
             if(line2.contains(line1.get(i)))
                 return i;
 

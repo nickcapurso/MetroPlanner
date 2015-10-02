@@ -72,7 +72,9 @@ public class StationInfo {
     public boolean equals(Object object){
         if(object instanceof StationInfo){
             StationInfo station2 = (StationInfo)object;
-            return name.equals(station2.name);
+            //Log.d("StationInfo", "Comparing station " + name + " [" + code + "," + altCode1 + "," + altCode2 + "] " +
+            //"to station " + station2.name + " [" + station2.code + "," + station2.altCode1 + "," + station2.altCode2 + "] ");
+            return code.equals(station2.code) || code.equals(station2.altCode1) || code.equals(station2.altCode2);
         }
         return false;
     }
