@@ -13,6 +13,4 @@ Pathing logic is done on the device, with the initial idea that the app would no
 ## Quick Start
 The API dependencies are taken care of by the build.grade file, however Apache HTTP Components have been deprecated as of Android API 23 (Marshmallow), so the current highest-supported SDK and Build Tools level is API 22.
 
-Development computers will need to have their SHA1 fingerprints added to the [Google Developers Console](console.developers.google.com) to be authenticated for the Google-based APIs used by the app. Otherwise the Google Maps screen will not show.
-
-Currently, the app needs some updates to account for the new way the WMATA API returns station lists (see Issues).
+Development computers will need to have their SHA1 fingerprints added to the [Google Developers Console](console.developers.google.com) to be authenticated for the Google-based APIs used by the app.
