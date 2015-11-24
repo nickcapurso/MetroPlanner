@@ -3,6 +3,8 @@ The goal of this project is to develop a simple, but intuitive app to aid visito
 
 Pathing logic is done on the device, with the initial idea that the app would not be dependent on some external server (other than WMATA). Because of the relatively small size of the D.C. Metro, the data transfer is not high. However, future iterations could possibly leverage the high processing power of servers to calculate Metro paths more efficiently and consider various metrics (like minimizing on: number of transfers, number of stops, cost, etc.).
 
+Since the app was initially created, the WMATA API has changed. Thus, the app currently is in need of an update to consider the new way WMATA returns line information. Screenshots of the previous functionality can be found in the Requirements And Design document in the root of the repo.
+
 ## Features
 	1. To start pathing, a user specifies a desination address of place and then, for the starting location, has the option to use their current location or can manually input a starting location. 
 	2. Locations can be specified with street addresses or general place names (for example, "Dulles Airport").
