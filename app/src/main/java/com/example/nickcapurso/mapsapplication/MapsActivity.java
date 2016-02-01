@@ -497,7 +497,7 @@ public class MapsActivity extends FragmentActivity {
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
             // Check if we were successful in obtaining the map.
-            if (mMap != null) {
+            if (mMap == null) {
                Log.d(MainActivity.TAG, "Error setting up Map");
             }
         }

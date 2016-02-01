@@ -14,6 +14,8 @@ public final class API_URLS {
     public static final String STATION_INFO = "https://api.wmata.com/Rail.svc/json/jStationInfo";
     public static final String STATION_LIST = "https://api.wmata.com/Rail.svc/json/jStations";
 
+    public static final String STATION_PATH = "https://api.wmata.com/Rail.svc/json/jPath";
+
     public static final String GEOCODING = "http://maps.google.com/maps/api/geocode/json";
 
     public static final String GOOGLE_API_KEY = "AIzaSyCeeioXvbj7KXqeBGAtyFKiz_2Z9Y5txrQ";

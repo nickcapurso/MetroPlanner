@@ -28,12 +28,14 @@ import java.util.Map;
 //TODO recomputed? Need to recompute the whole map, but virtually this would happen at every app start up (assuming one incident per day or something)
 public class PlanningModule{
     //Constants for each of the states
-    private static final byte STATE_GET_ENTRANCES = 0;
-    private static final byte STATE_GET_STATION_INFO = 1;
-    private static final byte STATE_GET_ALT_LINES = 2;
-    private static final byte STATE_GET_STATION_LIST = 3;
-    private static final byte STATE_FINISHED = 4;
-    private static final byte STATE_ERR = 6;
+    private static final byte STATE_GET_LINE_INFO = 0;
+    private static final byte STATE_GET_ENTRANCES = 1;
+    private static final byte STATE_GET_STATION_INFO = 2;
+    private static final byte STATE_GET_ALT_LINES = 3;
+    private static final byte STATE_GET_STATION_LIST = 4;
+    private static final byte STATE_GET_SORTED_LIST = 5;
+    private static final byte STATE_FINISHED = 6;
+    private static final byte STATE_ERR = 7;
 
     private static final int ONE_SECOND = 1000;
 
@@ -41,7 +43,7 @@ public class PlanningModule{
      * Use a delay for accessing the metro API so that the number of requests per second does
      * not exceed the allowed quota (non-commercial license)
      */
-    private static final int API_DELAY = ONE_SECOND / 2;
+    private static final int API_DELAY = ONE_SECOND / 4;
 
     /**
      * Look for station entrances within a mile of the inputted addresses
@@ -49,10 +51,9 @@ public class PlanningModule{
     private static final int MILE_IN_METERS = 1610;
 
     /**
-     * Line codes for the metro lines (should be made generic in the future - by fetching
-     * the actual line codes from the Metro API)
+     * Information for each line in the DC Metro
      */
-    private static final String[] lines = { "RD", "BL", "OR", "SV", "YL", "GR"};
+    private ArrayList<LineInfo> mLines;
 
     /**
      * For each line, hold the stations that comprise the line (in the future, maybe
@@ -117,6 +118,7 @@ public class PlanningModule{
         mClientHandler = client;
         mPaths = new ArrayList<MetroPath>();
         mAllLines = new HashMap<String, ArrayList<StationInfo>>();
+        mLines = new ArrayList<LineInfo>();
     }
 
     /**
@@ -124,11 +126,10 @@ public class PlanningModule{
      * the metro station that is closest to the starting address
      */
     public void start(){
-        mState = STATE_GET_ENTRANCES;
+        mState = STATE_GET_LINE_INFO;
         mCurrQueryNum = 0;
-        Log.d(MainActivity.TAG, "Fetching first station entrance");
-        new JSONFetcher(mHandler).execute(API_URLS.STATION_ENTRANCES, "api_key", API_URLS.WMATA_API_KEY,
-                "Lat", ""+mStartingAddr.latitude, "Lon", ""+mStartingAddr.longitude, "Radius", ""+ MILE_IN_METERS);
+        Log.d(MainActivity.TAG, "Fetching line information");
+        new JSONFetcher(mHandler).execute(API_URLS.LINES, "api_key", API_URLS.WMATA_API_KEY);
     }
 
     /**
@@ -184,6 +185,10 @@ public class PlanningModule{
         }
 
         switch(mState){
+            //Parse out line information
+            case STATE_GET_LINE_INFO:
+                mLines = parseLineInfo(jsonResult);
+                break;
             //Parse out the closest metro stations to the starting / ending address
             case STATE_GET_ENTRANCES:
                 updateProgress(1);
@@ -228,17 +233,27 @@ public class PlanningModule{
                     mErrMsg = "Error receiving metro lines information";
                 break;
 
-            //Get the list of stations that lie on a particular line, then when all are obtained,
-            //calculate a path from the starting station to the ending station
+            //Get the list of stations that lie on a particular line
             case STATE_GET_STATION_LIST:
-                if(mCurrQueryNum < lines.length-1){
-                    if(!mAllLines.containsKey(lines[mCurrQueryNum]))
-                        mAllLines.put(lines[mCurrQueryNum], parseStationList(jsonResult));
+                if(mCurrQueryNum < mLines.size()) {
+                    if (!mAllLines.containsKey(mLines.get(mCurrQueryNum).color))
+                        mAllLines.put(mLines.get(mCurrQueryNum).color, parseStationList(jsonResult));
 
+                    if(mState == STATE_ERR) {
+                        mErrMsg = "Error receiving metro lines information";
+                        break;
+                    }
+                }
+                break;
+
+            //Sort the stations on each line into their "logical" ordering, then when all are sorted,
+            //calculate a path from the user inputted starting station to the ending station
+            case STATE_GET_SORTED_LIST:
+                if(mCurrQueryNum < mLines.size()-1) {
+                    sortStationList(mLines.get(mCurrQueryNum).color, jsonResult);
                 }else{
-                    //Parse final station list
-                    if(!mAllLines.containsKey(lines[mCurrQueryNum]))
-                        mAllLines.put(lines[mCurrQueryNum], parseStationList(jsonResult));
+                    //TODO Sort final lines list
+                    sortStationList(mLines.get(mCurrQueryNum).color, jsonResult);
 
                     //Set error message if parsing fails
                     if(mState == STATE_ERR) {
@@ -426,6 +441,13 @@ public class PlanningModule{
      */
     private void continueFetches(){
         switch(mState){
+            case STATE_GET_LINE_INFO:
+                mState = STATE_GET_ENTRANCES;
+                mCurrQueryNum = 0;
+                Log.d(MainActivity.TAG, "Fetching first station entrance");
+                new JSONFetcher(mHandler).execute(API_URLS.STATION_ENTRANCES, "api_key", API_URLS.WMATA_API_KEY,
+                        "Lat", ""+mStartingAddr.latitude, "Lon", ""+mStartingAddr.longitude, "Radius", ""+ MILE_IN_METERS);
+                break;
             case STATE_GET_ENTRANCES:
                 //First query complete, time to get the station entrance for the second address
                 if(mCurrQueryNum == 0) {
@@ -475,7 +497,7 @@ public class PlanningModule{
 
                         Log.d(MainActivity.TAG, "Fetching first station list");
                         new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY,
-                                "LineCode", lines[0]);
+                                "LineCode", mLines.get(0).color);
 
                     }
                 }
@@ -497,7 +519,7 @@ public class PlanningModule{
 
                         Log.d(MainActivity.TAG, "Fetching first station list");
                         new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY,
-                                "LineCode", lines[0]);
+                                "LineCode", mLines.get(0).color);
                     }
 
                 //Move on to fetching station lists for each line
@@ -507,17 +529,78 @@ public class PlanningModule{
 
                     Log.d(MainActivity.TAG, "Fetching first station list");
                     new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY,
-                            "LineCode", lines[0]);
+                            "LineCode", mLines.get(0).color);
                 }
                 break;
             case STATE_GET_STATION_LIST:
                 //Fetch the station lists for each line
-                if(mCurrQueryNum < lines.length-1){
+                if(mCurrQueryNum < mLines.size()-1){
                     mCurrQueryNum ++;
-                    Log.d(MainActivity.TAG, "Fetching list for line: " + lines[mCurrQueryNum]);
-                    new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY, "LineCode", lines[mCurrQueryNum]);
+                    Log.d(MainActivity.TAG, "Fetching list for line: " + mLines.get(mCurrQueryNum).color);
+                    new JSONFetcher(mHandler).execute(API_URLS.STATION_LIST, "api_key", API_URLS.WMATA_API_KEY, "LineCode", mLines.get(mCurrQueryNum).color);
+                }else{
+                    //Start getting order path-between-stations for all lines
+                    mCurrQueryNum = 0;
+                    mState = STATE_GET_SORTED_LIST;
+                    LineInfo curr = mLines.get(mCurrQueryNum);
+                    Log.d(MainActivity.TAG, "Fetching sorted station list for line: " + curr.color);
+                    new JSONFetcher(mHandler).execute(API_URLS.STATION_PATH, "api_key", API_URLS.WMATA_API_KEY,
+                            "FromStationCode", curr.startStationCode, "ToStationCode", curr.endStationCode);
+                }
+
+                break;
+            case STATE_GET_SORTED_LIST:
+                if(mCurrQueryNum < mLines.size()-1){
+                    //Continue getting order path-between-stations for all lines
+                    mCurrQueryNum++;
+                    LineInfo curr = mLines.get(mCurrQueryNum);
+                    Log.d(MainActivity.TAG, "Fetching sorted station list for line: " + curr.color);
+                    new JSONFetcher(mHandler).execute(API_URLS.STATION_PATH, "api_key", API_URLS.WMATA_API_KEY,
+                            "FromStationCode", curr.startStationCode, "ToStationCode", curr.endStationCode);
                 }
                 break;
+        }
+    }
+
+    /**
+     * Given the correct sequence of stations from a line's starting to ending stations,
+     * sorts the station lists we have received previously.
+     * @param lineColor
+     * @param jsonResult
+     */
+    private void sortStationList(String lineColor, String jsonResult){
+        try {
+            JSONObject topObject = new JSONObject(jsonResult);
+            JSONArray stationList = topObject.getJSONArray("Path");
+            ArrayList<StationInfo> currLine = mAllLines.get(lineColor);
+
+            for(int i = 0; i < stationList.length(); i++){
+                JSONObject stationJson = stationList.getJSONObject(i);
+                StationInfo station = new StationInfo(stationJson.getString("StationName"),0,0,stationJson.getString("StationCode"));
+
+                int currIndex = currLine.indexOf(station);
+                if(currIndex == -1){
+                    Log.d(MainActivity.TAG, "Could not find " + station.name + " in array for line " + lineColor);
+                    mState = STATE_ERR;
+                    return;
+                }
+
+                int newIndex = stationJson.getInt("SeqNum") - 1;
+
+                if(currIndex == newIndex) continue;
+
+                //Swapping stations into their correct positions
+                StationInfo temp = currLine.get(newIndex);
+                currLine.set(newIndex, currLine.get(currIndex));
+                currLine.set(currIndex, temp);
+            }
+
+            for(StationInfo info : currLine)
+                Log.d(MainActivity.TAG, "Sorted, name: " + info.name + ", lat: " + info.latitude + ", lon: " + info.longitude + ", code: " + info.code
+                        + ", altCode1: " + info.altCode1 + ", altCode2: " + info.altCode2);
+        }catch(JSONException e){
+            mState = STATE_ERR;
+            e.printStackTrace();
         }
     }
 
@@ -703,6 +786,32 @@ public class PlanningModule{
         for(StationInfo info : temp)
             Log.d(MainActivity.TAG, "Added, name: " + info.name + ", lat: " + info.latitude + ", lon: " + info.longitude + ", code: " + info.code
             + ", altCode1: " + info.altCode1 + ", altCode2: " + info.altCode2);
+        return temp;
+    }
+
+    /**
+     * Parses line information (color, starting / ending stations) out of a JSON object returned by a Metro API query
+     * @param jsonResult
+     * @return The list of line information (array of LineInfo objects)
+     */
+    private ArrayList<LineInfo> parseLineInfo(String jsonResult){
+        ArrayList<LineInfo> temp = new ArrayList<>();
+
+        try {
+            JSONObject topObject = new JSONObject(jsonResult);
+            JSONArray linesList = topObject.getJSONArray("Lines");
+
+            for(int i = 0; i < linesList.length(); i++){
+                JSONObject line = linesList.getJSONObject(i);
+                temp.add(new LineInfo(line.getString("LineCode"), line.getString("StartStationCode"), line.getString("EndStationCode")));
+            }
+        } catch (JSONException e) {
+            mState = STATE_ERR;
+            e.printStackTrace();
+        }
+
+        for(LineInfo info : temp)
+            Log.d(MainActivity.TAG, "Line: " + info.color + ", start: " + info.startStationCode + ", end:" + info.endStationCode);
         return temp;
     }
 
